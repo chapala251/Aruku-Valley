@@ -1,0 +1,212 @@
+@import "tailwindcss";
+
+@theme {
+  --color-forest-green: #2D6A4F;
+  --color-sage: #52B788;
+  --color-earth-brown: #7C4F2F;
+  --color-warm-sand: #F4E9D8;
+  --color-cream: #FFFBF4;
+  --color-charcoal: #1C1C1E;
+  --color-mist: #6B7280;
+  --color-sun-gold: #E9A84C;
+  --color-sky-mist: #EFF7F2;
+
+  --font-playfair: "Playfair Display", serif;
+  --font-dm: "DM Sans", sans-serif;
+}
+
+/* Z-INDEX SYSTEM */
+:root {
+  --z-base:       1;
+  --z-card:       10;
+  --z-dropdown:   100;
+  --z-sticky:     200;
+  --z-tabbar:     999;
+  --z-navbar:     1000;
+  --z-whatsapp:   1001;
+  --z-modal-bg:   1100;
+  --z-modal:      1200;
+  --z-toast:      9999;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 120px;  /* 68px navbar + 44px tab bar + 8px buffer */
+}
+
+/* If any page hero uses min-height: 100vh, reduce it slightly */
+.hero-section {
+  min-height: calc(100vh - 44px);  /* subtract tab bar height */
+}
+
+body {
+  font-family: var(--font-dm);
+  background-color: var(--color-cream);
+  color: var(--color-charcoal);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+h1, h2, h3, h4, h5 {
+  font-family: var(--font-playfair);
+}
+
+@layer utilities {
+  .font-playfair {
+    font-family: "Playfair Display", serif;
+  }
+  .font-dm {
+    font-family: "DM Sans", sans-serif;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-warm-sand);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-sage);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-forest-green);
+}
+
+/* Line clamp utility */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Image zoom on card hover */
+.card-image-zoom img {
+  transition: transform 0.4s ease;
+}
+.card-image-zoom:hover img {
+  transform: scale(1.05);
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+section {
+  padding: 60px 24px;
+}
+
+@media (max-width: 767px) {
+  section {
+    padding: 40px 16px;
+  }
+  main, .page-content {
+    padding-bottom: 80px !important;
+  }
+}
+
+.grid-container {
+  display: grid;
+  width: 100%;
+  overflow: hidden;
+}
+
+.card {
+  overflow: hidden;
+  position: relative;
+}
+
+.page-content,
+main {
+  padding-top: 0;   /* PageTabBar handles spacing */
+}
+
+.navbar         { position: fixed; top: 0; z-index: var(--z-navbar); }
+.mobile-tabbar  { position: fixed; bottom: 0; z-index: var(--z-tabbar); }
+.whatsapp-fab   { position: fixed; z-index: var(--z-whatsapp); }
+.modal-backdrop { position: fixed; inset: 0; z-index: var(--z-modal-bg); }
+.modal-content  { position: relative; z-index: var(--z-modal); }
+
+.hero-title {
+  font-size: clamp(2rem, 8vw, 5rem);
+  line-height: 1.1;
+  word-break: break-word;
+}
+
+.hero-subtitle {
+  font-size: clamp(0.9rem, 3vw, 1.25rem);
+}
+
+.hero-cta-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+}
+
+/* Tablet tab bar styles */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .page-tab-bar a {
+    padding: 10px 12px !important;   /* smaller padding on tablet */
+    font-size: 12.5px !important;    /* slightly smaller font */
+  }
+}
+
+@media (max-width: 767px) {
+  .page-tab-bar {
+    justify-content: flex-start !important;  /* left-scroll on mobile */
+  }
+  .page-tab-bar a {
+    padding: 10px 14px !important;
+    font-size: 13px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Make navbar logo text smaller on small phones */
+  .navbar-brand-title {
+    font-size: 17px !important;
+    letter-spacing: 0.03em !important;
+  }
+  .navbar-brand-icon {
+    width: 30px !important;
+    height: 30px !important;
+    font-size: 15px !important;
+  }
+}
+
+/* Hide "Hi, Name" greeting on mobile and tablet — show avatar only */
+@media (max-width: 768px) {
+  .user-greeting {
+    display: none !important;
+  }
+}
+
+/* Show greeting on desktop */
+@media (min-width: 769px) {
+  .user-greeting {
+    display: inline !important;
+  }
+}
