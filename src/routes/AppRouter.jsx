@@ -46,7 +46,7 @@ export default function AppRouter() {
   return (
     <>
       <Navbar />
-      <main className="page-content" style={{ paddingTop: showPageTabBar ? '0px' : '64px', paddingBottom: '80px' }}>
+      <main className="page-content" style={{ paddingTop: '0', paddingBottom: '80px' }}>
         {showPageTabBar && <PageTabBar />}
         <AnimatePresence mode="wait">
           <Routes location={location} key={location.pathname}>

@@ -16,8 +16,6 @@ export default function PageTabBar() {
     <div style={{
       position: 'sticky',
       top: '64px',
-      marginTop: '64px',
-
       zIndex: 900,
       backgroundColor: '#FFFFFF',
       borderBottom: '1px solid #E8DDD4',

@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import HeroSection from '../components/home/HeroSection';
+import ArakuNavTabs from '../components/ArakuNavTabs';
 import FeaturedPackages from '../components/home/FeaturedPackages';
 import DestinationCards from '../components/home/DestinationCards';
 import ResortStrip from '../components/home/ResortStrip';
@@ -51,6 +52,7 @@ function CTABanner() {
 export default function Home() {
   return (
     <motion.div variants={pageVariants} initial="initial" animate="animate" exit="exit">
+      <ArakuNavTabs />
       <HeroSection />
       <FeaturedPackages />
       <DestinationCards />

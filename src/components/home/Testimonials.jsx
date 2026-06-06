@@ -28,7 +28,7 @@ export default function Testimonials() {
           className="mb-12"
         >
           <SectionHeader
-            badge="Testimonials"
+            badge={<span className="text-white">Testimonials</span>}
             title={<span className="text-white">What Travellers Say</span>}
             subtitle={<span className="text-white/70">Real stories from people who explored Araku with us.</span>}
           />

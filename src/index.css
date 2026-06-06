@@ -17,34 +17,38 @@
 
 /* Z-INDEX SYSTEM */
 :root {
-  --z-base:       1;
-  --z-card:       10;
-  --z-dropdown:   100;
-  --z-sticky:     200;
-  --z-tabbar:     999;
-  --z-navbar:     1000;
-  --z-whatsapp:   1001;
-  --z-modal-bg:   1100;
-  --z-modal:      1200;
-  --z-toast:      9999;
+  --z-base: 1;
+  --z-card: 10;
+  --z-dropdown: 100;
+  --z-sticky: 200;
+  --z-tabbar: 999;
+  --z-navbar: 1000;
+  --z-whatsapp: 1001;
+  --z-modal-bg: 1100;
+  --z-modal: 1200;
+  --z-toast: 9999;
 }
 
 * {
   box-sizing: border-box;
 }
 
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
 html {
   scroll-behavior: smooth;
-  scroll-padding-top: 120px;  /* 68px navbar + 44px tab bar + 8px buffer */
+  scroll-padding-top: 120px;
+  /* 68px navbar + 44px tab bar + 8px buffer */
 }
 
 /* If any page hero uses min-height: 100vh, reduce it slightly */
 .hero-section {
-  min-height: calc(100vh - 44px);  /* subtract tab bar height */
+  min-height: calc(100vh - 44px);
+  /* subtract tab bar height */
 }
 
 body {
@@ -58,7 +62,11 @@ body {
   overflow-x: hidden;
 }
 
-h1, h2, h3, h4, h5 {
+h1,
+h2,
+h3,
+h4,
+h5 {
   font-family: var(--font-playfair);
 }
 
@@ -66,6 +74,7 @@ h1, h2, h3, h4, h5 {
   .font-playfair {
     font-family: "Playfair Display", serif;
   }
+
   .font-dm {
     font-family: "DM Sans", sans-serif;
   }
@@ -75,13 +84,16 @@ h1, h2, h3, h4, h5 {
 ::-webkit-scrollbar {
   width: 6px;
 }
+
 ::-webkit-scrollbar-track {
   background: var(--color-warm-sand);
 }
+
 ::-webkit-scrollbar-thumb {
   background: var(--color-sage);
   border-radius: 3px;
 }
+
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-forest-green);
 }
@@ -93,6 +105,7 @@ h1, h2, h3, h4, h5 {
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+
 .line-clamp-3 {
   display: -webkit-box;
   -webkit-line-clamp: 3;
@@ -104,6 +117,7 @@ h1, h2, h3, h4, h5 {
 .card-image-zoom img {
   transition: transform 0.4s ease;
 }
+
 .card-image-zoom:hover img {
   transform: scale(1.05);
 }
@@ -122,7 +136,9 @@ section {
   section {
     padding: 40px 16px;
   }
-  main, .page-content {
+
+  main,
+  .page-content {
     padding-bottom: 80px !important;
   }
 }
@@ -140,14 +156,37 @@ section {
 
 .page-content,
 main {
-  padding-top: 0;   /* PageTabBar handles spacing */
+  padding-top: 0 !important;
+  margin-top: 0 !important;
 }
 
-.navbar         { position: fixed; top: 0; z-index: var(--z-navbar); }
-.mobile-tabbar  { position: fixed; bottom: 0; z-index: var(--z-tabbar); }
-.whatsapp-fab   { position: fixed; z-index: var(--z-whatsapp); }
-.modal-backdrop { position: fixed; inset: 0; z-index: var(--z-modal-bg); }
-.modal-content  { position: relative; z-index: var(--z-modal); }
+.navbar {
+  position: fixed;
+  top: 0;
+  z-index: var(--z-navbar);
+}
+
+.mobile-tabbar {
+  position: fixed;
+  bottom: 0;
+  z-index: var(--z-tabbar);
+}
+
+.whatsapp-fab {
+  position: fixed;
+  z-index: var(--z-whatsapp);
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal-bg);
+}
+
+.modal-content {
+  position: relative;
+  z-index: var(--z-modal);
+}
 
 .hero-title {
   font-size: clamp(2rem, 8vw, 5rem);
@@ -169,15 +208,19 @@ main {
 /* Tablet tab bar styles */
 @media (min-width: 768px) and (max-width: 1023px) {
   .page-tab-bar a {
-    padding: 10px 12px !important;   /* smaller padding on tablet */
-    font-size: 12.5px !important;    /* slightly smaller font */
+    padding: 10px 12px !important;
+    /* smaller padding on tablet */
+    font-size: 12.5px !important;
+    /* slightly smaller font */
   }
 }
 
 @media (max-width: 767px) {
   .page-tab-bar {
-    justify-content: flex-start !important;  /* left-scroll on mobile */
+    justify-content: flex-start !important;
+    /* left-scroll on mobile */
   }
+
   .page-tab-bar a {
     padding: 10px 14px !important;
     font-size: 13px !important;
@@ -185,11 +228,13 @@ main {
 }
 
 @media (max-width: 480px) {
+
   /* Make navbar logo text smaller on small phones */
   .navbar-brand-title {
     font-size: 17px !important;
     letter-spacing: 0.03em !important;
   }
+
   .navbar-brand-icon {
     width: 30px !important;
     height: 30px !important;
@@ -208,5 +253,94 @@ main {
 @media (min-width: 769px) {
   .user-greeting {
     display: inline !important;
+  }
+}
+
+/* Show ONLY on mobile */
+@media (max-width: 767px) {
+  .mobile-tab-bar {
+    display: flex !important;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 999;
+  }
+}
+
+/* Hide on tablet and desktop */
+@media (min-width: 768px) {
+  .mobile-tab-bar {
+    display: none !important;
+  }
+}
+
+@media (max-width: 767px) {
+
+  .page-tab-bar,
+  .page-tab-bar-wrapper {
+    display: none !important;
+  }
+}
+
+/* Show SwiggyTabs only on mobile */
+@media (max-width: 767px) {
+  .swiggy-tabs-wrapper {
+    display: block !important;
+  }
+}
+
+@media (min-width: 768px) {
+  .swiggy-tabs-wrapper {
+    display: none !important;
+  }
+}
+
+.page-tab-bar-wrapper,
+[style*="margin-top: 64px"],
+[style*="marginTop: 64"] {
+  margin-top: 0 !important;
+}
+
+.swiggy-top-tabs {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .swiggy-top-tabs {
+    display: block !important;
+    height: auto !important;
+    margin: 0 !important;
+  }
+}
+
+@media (min-width: 768px) {
+  .swiggy-top-tabs {
+    display: none !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+  }
+}
+
+/* Show mobile tab bar only on mobile */
+@media (max-width: 767px) {
+  .araku-mobile-tabbar {
+    display: flex !important;
+    align-items: center;
+  }
+}
+
+@media (min-width: 768px) {
+  .araku-mobile-tabbar {
+    display: none !important;
+  }
+}
+
+/* Mobile bottom padding for tab bar */
+@media (max-width: 767px) {
+  main {
+    padding-bottom: 72px;
   }
 }

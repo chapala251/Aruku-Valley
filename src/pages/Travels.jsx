@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { vehicles } from '../data/vehicles';
+import ArakuNavTabs from '../components/ArakuNavTabs';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -34,7 +35,8 @@ export default function Travels() {
   };
 
   return (
-    <motion.div variants={pageVariants} initial="initial" animate="animate" exit="exit" className="min-h-screen pt-28 md:pt-36">
+    <motion.div variants={pageVariants} initial="initial" animate="animate" exit="exit" className="min-h-screen pt-8 md:pt-36">
+      <ArakuNavTabs />
       {/* Header */}
       <section className="py-20 md:py-24 px-5 md:px-8 bg-[#EFF7F2]" id="travels-header">
         <div className="max-w-7xl mx-auto">

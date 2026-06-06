@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { packages } from '../data/packages';
+import ArakuNavTabs from '../components/ArakuNavTabs';
 import PackageCard, { cardVariants } from '../components/packages/PackageCard';
 import SectionHeader from '../components/shared/SectionHeader';
 import { Filter } from 'lucide-react';
@@ -30,8 +31,9 @@ export default function Packages() {
       initial="initial"
       animate="animate"
       exit="exit"
-      className="min-h-screen pt-28 md:pt-36"
+      className="min-h-screen pt-8 md:pt-36"
     >
+      <ArakuNavTabs />
       {/* Header */}
       <section className="py-20 md:py-24 px-5 md:px-8 bg-[#EFF7F2]" id="packages-header">
         <div className="max-w-7xl mx-auto">
@@ -53,8 +55,8 @@ export default function Packages() {
               onClick={() => setActiveType(type)}
               id={`filter-${type.toLowerCase().replace(/\s+/g, '-')}`}
               className={`px-5 md:px-8 py-2 rounded-full text-sm font-semibold transition-all ${activeType === type
-                  ? 'bg-[#2D6A4F] text-white shadow-md'
-                  : 'bg-[#EFF7F2] text-[#6B7280] hover:bg-[#2D6A4F]/10 hover:text-[#2D6A4F]'
+                ? 'bg-[#2D6A4F] text-white shadow-md'
+                : 'bg-[#EFF7F2] text-[#6B7280] hover:bg-[#2D6A4F]/10 hover:text-[#2D6A4F]'
                 }`}
             >
               {type}

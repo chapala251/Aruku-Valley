@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { resorts } from '../data/resorts';
+import ArakuNavTabs from '../components/ArakuNavTabs';
 import { Star, MapPin, Wifi, Coffee, Car, Flame, MessageCircle } from 'lucide-react';
 import SectionHeader from '../components/shared/SectionHeader';
 
@@ -20,7 +21,8 @@ const pageVariants = {
 
 export default function Resorts() {
   return (
-    <motion.div variants={pageVariants} initial="initial" animate="animate" exit="exit" className="min-h-screen pt-28 md:pt-36">
+    <motion.div variants={pageVariants} initial="initial" animate="animate" exit="exit" className="min-h-screen pt-8 md:pt-36">
+      <ArakuNavTabs />
       {/* Header */}
       <section className="py-20 md:py-24 px-5 md:px-8 bg-[#EFF7F2]" id="resorts-header">
         <div className="max-w-7xl mx-auto">
