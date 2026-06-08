@@ -338,7 +338,7 @@ main {
   }
 }
 
-/* Mobile bottom padding for tab bar */
+/* Mobile bottom padding for tab bar in mobile*/
 @media (max-width: 767px) {
   main {
     padding-bottom: 72px;
