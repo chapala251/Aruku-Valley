@@ -22,6 +22,7 @@ import Contact from '../pages/Contact';
 import Login from '../pages/auth/Login';
 import Signup from '../pages/auth/Signup';
 import Dashboard from '../pages/Dashboard';
+import BlogEditor from '../pages/admin/BlogEditor';
 
 function ProtectedRoute({ children }) {
   const location = useLocation();
@@ -32,6 +33,25 @@ function ProtectedRoute({ children }) {
   if (!isAuthenticated) {
     return <Navigate to="/auth/login" state={{ from: location.pathname }} replace />;
   }
+  return children;
+}
+
+function AdminBlogRoute({ children }) {
+  const stored = localStorage.getItem('user');
+  const user   = stored ? JSON.parse(stored) : null;
+  const isAdmin = user?.email === 'arakuecostays@gmail.com';
+
+  if (!user) {
+    // Not logged in — go to sign in
+    return <Navigate to="/auth/login" replace />;
+  }
+
+  if (!isAdmin) {
+    // Logged in but not admin — go to dashboard
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  // Is admin — show the editor
   return children;
 }
 
@@ -71,6 +91,11 @@ export default function AppRouter() {
                 </ProtectedRoute>
               }
             />
+
+            {/* Admin routes — check admin inside guard */}
+            <Route path="/admin/blog/new" element={<AdminBlogRoute><BlogEditor /></AdminBlogRoute>} />
+            <Route path="/admin/blog/edit/:id" element={<AdminBlogRoute><BlogEditor /></AdminBlogRoute>} />
+
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </AnimatePresence>

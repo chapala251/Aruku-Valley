@@ -344,3 +344,30 @@ main {
     padding-bottom: 72px;
   }
 }
+
+/* Blog article content styling */
+.blog-content h2 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: #1A120B;
+  margin: 32px 0 12px;
+}
+.blog-content p {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 15px;
+  color: #4A3728;
+  line-height: 1.85;
+  margin-bottom: 16px;
+}
+.blog-content ul, .blog-content ol {
+  padding-left: 20px;
+  margin-bottom: 16px;
+}
+.blog-content li {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 15px;
+  color: #4A3728;
+  line-height: 1.8;
+  margin-bottom: 6px;
+}

@@ -1,120 +1,122 @@
-import React from 'react';
-import { useParams, Link, Navigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { blogPosts } from '../data/blog';
-import { Clock, ArrowLeft, Tag, MessageCircle } from 'lucide-react';
-
-const pageVariants = {
-  initial: { opacity: 0, y: 20 },
-  animate: { opacity: 1, y: 0, transition: { duration: 0.4 } },
-  exit: { opacity: 0, transition: { duration: 0.25 } },
-};
-
-function renderContent(content) {
-  const lines = content.split('\n');
-  const elements = [];
-  let key = 0;
-  for (const line of lines) {
-    if (line.startsWith('## ')) {
-      elements.push(<h2 key={key++} className="font-playfair font-bold text-[#1C1C1E] text-2xl mt-8 mb-3">{line.replace('## ', '')}</h2>);
-    } else if (line.startsWith('### ')) {
-      elements.push(<h3 key={key++} className="font-playfair font-semibold text-[#1C1C1E] text-xl mt-6 mb-2">{line.replace('### ', '')}</h3>);
-    } else if (line.startsWith('**') && line.endsWith('**') && line.includes(':')) {
-      const parts = line.replace(/\*\*/g, '').split(':');
-      elements.push(<p key={key++} className="text-[#6B7280] text-base mb-2"><strong className="text-[#1C1C1E]">{parts[0]}:</strong>{parts.slice(1).join(':')}</p>);
-    } else if (line.startsWith('- ')) {
-      elements.push(<li key={key++} className="text-[#6B7280] text-base ml-4 mb-1 list-disc">{line.replace('- ', '')}</li>);
-    } else if (line.match(/^\|/)) {
-      // skip table rows (rendered as-is in a simple way)
-    } else if (line.trim()) {
-      elements.push(<p key={key++} className="text-[#6B7280] text-base leading-relaxed mb-4">{line}</p>);
-    }
-  }
-  return elements;
-}
+import { useEffect, useState } from 'react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
+import { ArrowLeft, Clock, Calendar, User } from 'lucide-react';
 
 export default function BlogPost() {
   const { slug } = useParams();
-  const post = blogPosts.find((p) => p.slug === slug);
+  const [post, setPost]     = useState(null);
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
-  if (!post) return <Navigate to="/blog" replace />;
+  const stored = localStorage.getItem('user');
+  const currentUser = stored ? JSON.parse(stored) : null;
+  const isAdmin = currentUser?.email === 'arakuecostays@gmail.com';
 
-  const other = blogPosts.filter((p) => p.id !== post.id).slice(0, 2);
+  useEffect(() => {
+    const fetch = async () => {
+      const { data } = await supabase
+        .from('blogs')
+        .select('*')
+        .eq('slug', slug)
+        .single();
+      setPost(data);
+      setLoading(false);
+    };
+    fetch();
+  }, [slug]);
+
+  if (loading) return <div style={{ padding: '120px 24px', textAlign: 'center', color: '#9E8B7B' }}>Loading...</div>;
+  if (!post) return <div style={{ padding: '120px 24px', textAlign: 'center' }}>Post not found. <Link to="/blog">← Back to Blog</Link></div>;
 
   return (
-    <motion.div variants={pageVariants} initial="initial" animate="animate" exit="exit" className="min-h-screen pt-24 md:pt-32">
+    <div style={{ backgroundColor: '#FAF7F2', minHeight: '100vh' }}>
+
       {/* Hero */}
-      <div className="relative h-64 md:h-80">
-        <img src={post.image} alt={post.title} className="w-full h-full object-cover"
-          onError={(e) => { e.target.src = 'https://araku-valley.com/wp-content/uploads/2024/06/ARAKU-VALLEY.png'; }} />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
-        <div className="absolute bottom-0 left-0 right-0 p-6 md:p-10">
-          <Link to="/blog" className="inline-flex items-center gap-2 text-white/80 hover:text-white text-sm mb-4 transition-colors">
-            <ArrowLeft size={16} /> Back to Blog
+      <div style={{ position: 'relative', height: '420px', overflow: 'hidden' }}>
+        <img src={post.cover_image || 'https://araku-valley.com/wp-content/uploads/2024/06/ARAKU-VALLEY.png'}
+          alt={post.title}
+          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+        />
+        <div style={{
+          position: 'absolute', inset: 0,
+          background: 'linear-gradient(to bottom, rgba(0,0,0,0.2), rgba(26,18,11,0.85))',
+        }} />
+        {/* Back button */}
+        <Link to="/blog" style={{
+          position: 'absolute', top: '80px', left: '24px',
+          display: 'flex', alignItems: 'center', gap: '6px',
+          color: '#FAF7F2', textDecoration: 'none', fontSize: '14px',
+          fontFamily: "'Plus Jakarta Sans', sans-serif",
+          backgroundColor: 'rgba(0,0,0,0.3)', padding: '6px 14px',
+          borderRadius: '100px', backdropFilter: 'blur(4px)',
+        }}>
+          <ArrowLeft size={14} /> Back to Blog
+        </Link>
+
+        {/* Admin Edit */}
+        {isAdmin && (
+          <Link to={`/admin/blog/edit/${post.id}`} style={{
+            position: 'absolute', top: '80px', right: '24px',
+            backgroundColor: '#C4622D', color: '#fff',
+            padding: '6px 16px', borderRadius: '100px',
+            textDecoration: 'none', fontSize: '13px', fontWeight: '600',
+          }}>
+            ✏️ Edit Post
           </Link>
-          <span className="inline-block bg-[#2D6A4F] text-white text-xs font-bold px-3 py-1 rounded-full mb-3">{post.category}</span>
-          <h1 className="font-playfair font-bold text-white text-2xl md:text-4xl leading-tight max-w-3xl">{post.title}</h1>
+        )}
+
+        {/* Title overlay */}
+        <div style={{
+          position: 'absolute', bottom: 0, left: 0, right: 0,
+          padding: '0 24px 32px', maxWidth: '800px', margin: '0 auto',
+        }}>
+          <span style={{
+            backgroundColor: '#C4622D', color: '#fff',
+            fontSize: '11px', fontWeight: '700', padding: '4px 12px',
+            borderRadius: '100px', letterSpacing: '0.08em',
+            fontFamily: "'Plus Jakarta Sans', sans-serif",
+          }}>
+            {post.category}
+          </span>
+          <h1 style={{
+            fontFamily: "'Cormorant Garamond', serif",
+            fontSize: 'clamp(1.8rem, 4vw, 3rem)',
+            color: '#FAF7F2', fontWeight: 700, lineHeight: 1.15,
+            margin: '12px 0 0',
+          }}>
+            {post.title}
+          </h1>
         </div>
       </div>
 
-      {/* Meta */}
-      <div className="max-w-3xl mx-auto px-5 md:px-8 pt-6 flex items-center gap-4 text-sm text-[#6B7280]">
-        <span>{post.date}</span>
-        <span>·</span>
-        <span className="flex items-center gap-1"><Clock size={13} /> {post.readTime}</span>
-        <span>·</span>
-        <span>By {post.author}</span>
+      {/* Meta bar */}
+      <div style={{
+        backgroundColor: '#fff', borderBottom: '1px solid #E8DDD4',
+        padding: '16px 24px', display: 'flex', gap: '20px', flexWrap: 'wrap',
+      }}>
+        {[
+          { icon: User, text: post.author },
+          { icon: Calendar, text: new Date(post.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }) },
+          { icon: Clock, text: post.read_time },
+        ].map(({ icon: Icon, text }) => (
+          <span key={text} style={{
+            display: 'flex', alignItems: 'center', gap: '6px',
+            fontSize: '13px', color: '#6B5744',
+            fontFamily: "'Plus Jakarta Sans', sans-serif",
+          }}>
+            <Icon size={14} color="#C4622D" /> {text}
+          </span>
+        ))}
       </div>
 
-      {/* Content */}
-      <article className="max-w-3xl mx-auto px-5 md:px-8 py-8">
-        {renderContent(post.content)}
-
-        {/* Tags */}
-        <div className="flex flex-wrap gap-2 mt-10 pt-6 border-t border-[#F4E9D8]">
-          {post.tags.map((tag) => (
-            <span key={tag} className="flex items-center gap-1 text-xs bg-[#EFF7F2] text-[#2D6A4F] px-3 py-1.5 rounded-full font-medium">
-              <Tag size={10} /> {tag}
-            </span>
-          ))}
-        </div>
-
-        {/* CTA */}
-        <div className="mt-10 bg-[#EFF7F2] rounded-2xl p-8 text-center border border-[#F4E9D8]">
-          <h3 className="font-playfair font-bold text-[#1C1C1E] text-2xl mb-2">Ready to Experience Araku?</h3>
-          <p className="text-[#6B7280] mb-5">Let our local experts plan the perfect trip for you.</p>
-          <a
-            href="https://wa.me/919573112302"
-            target="_blank"
-            rel="noopener noreferrer"
-            id="blog-cta-whatsapp"
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-white font-bold text-sm"
-            style={{ backgroundColor: '#25D366' }}
-          >
-            <MessageCircle size={16} /> Chat on WhatsApp
-          </a>
-        </div>
-      </article>
-
-      {/* Related Posts */}
-      {other.length > 0 && (
-        <section className="py-24 md:py-32 md:py-20 px-5 md:px-8 bg-[#EFF7F2]" id="related-posts">
-          <div className="max-w-3xl mx-auto">
-            <h2 className="font-playfair font-bold text-[#1C1C1E] text-2xl mb-6">More from the Blog</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-              {other.map((p) => (
-                <Link key={p.id} to={`/blog/${p.slug}`} className="group bg-[#FFFBF4] rounded-xl overflow-hidden border border-[#F4E9D8] hover:shadow-md transition-shadow">
-                  <img src={p.image} alt={p.title} className="w-full h-36 object-cover" onError={(e) => { e.target.src = 'https://araku-valley.com/wp-content/uploads/2024/06/ARAKU-VALLEY.png'; }} />
-                  <div className="p-4">
-                    <p className="text-xs text-[#6B7280] mb-1">{p.category} · {p.readTime}</p>
-                    <h3 className="font-playfair font-semibold text-[#1C1C1E] text-sm leading-snug group-hover:text-[#2D6A4F] transition-colors line-clamp-2">{p.title}</h3>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
-    </motion.div>
+      {/* Article Content */}
+      <div style={{ maxWidth: '760px', margin: '0 auto', padding: '40px 24px 80px' }}>
+        <div
+          className="blog-content"
+          dangerouslySetInnerHTML={{ __html: post.content }}
+        />
+      </div>
+    </div>
   );
 }
