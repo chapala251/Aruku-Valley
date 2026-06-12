@@ -20,13 +20,11 @@ const quickLinks = [
   { label: 'Tour Packages', to: '/packages' },
   { label: 'Resorts & Hotels', to: '/resorts' },
   { label: 'Travels & Cabs', to: '/travels' },
-  { label: 'Vanjangi Hills', to: '/vanjangi' },
-  { label: 'Lambasingi Hills', to: '/lambasingi' },
   { label: 'Blog', to: '/blog' },
   { label: 'Contact Us', to: '/contact' },
 ];
 
-export default function Footer() {
+export default function Footer({ setTermsOpen = () => {} }) {
   return (
     <footer className="bg-[#1C1C1E] text-[#F4E9D8]" id="footer">
       <div className="max-w-7xl mx-auto px-5 md:px-8 sm:px-6 lg:px-8 pt-28 md:pt-36 pb-28 md:pb-20">
@@ -127,7 +125,7 @@ export default function Footer() {
           <p className="text-[#6B7280] text-xs">© 2025 Araku Valley. All rights reserved.</p>
           <div className="flex gap-5">
             <a href="#" className="text-[#6B7280] hover:text-[#52B788] text-xs transition-colors">Privacy Policy</a>
-            <a href="#" className="text-[#6B7280] hover:text-[#52B788] text-xs transition-colors">Terms of Service</a>
+            <a href="#" onClick={(e) => { e.preventDefault(); setTermsOpen(true); }} className="text-[#6B7280] hover:text-[#52B788] text-xs transition-colors">Terms of Service</a>
           </div>
         </div>
       </div>

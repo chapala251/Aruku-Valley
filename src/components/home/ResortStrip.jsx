@@ -1,11 +1,19 @@
-import React from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { resorts } from '../../data/resorts';
 import { Star, MapPin, ArrowRight } from 'lucide-react';
 import SectionHeader from '../shared/SectionHeader';
 
-export default function ResortStrip() {
+export default function ResortStrip({ onBookNow }) {
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
+
   return (
     <section className="py-20 px-5 md:px-8 bg-[#FFFBF4]" id="resort-strip">
       <div className="max-w-7xl mx-auto">
@@ -29,53 +37,112 @@ export default function ResortStrip() {
           </div>
         </motion.div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-          {resorts.map((resort, i) => (
-            <motion.div
-              key={resort.id}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.08, duration: 0.4 }}
-            >
-              <Link
-                to={`/resorts/${resort.slug}`}
-                id={`resort-card-${resort.id}`}
-                className="group block bg-[#FFFBF4] rounded-2xl overflow-hidden shadow-sm border border-[#F4E9D8] hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
-              >
-                <div className="relative overflow-hidden h-44">
-                  <img
-                    src={resort.image}
-                    alt={resort.name}
-                    onError={(e) => {
-                      e.target.src = 'https://araku-valley.com/wp-content/uploads/2024/06/ARAKU-VALLEY.png';
-                    }}
-                    style={{ width: '100%', height: '200px', objectFit: 'cover', display: 'block' }}
+        {isMobile ? (
+          <div style={{
+            display: 'flex', overflowX: 'auto', gap: '14px',
+            padding: '4px 16px 16px', scrollbarWidth: 'none',
+            WebkitOverflowScrolling: 'touch', scrollSnapType: 'x mandatory',
+          }} className="horizontal-scroll">
+            {resorts.map(resort => (
+              <div key={resort.id} style={{
+                minWidth: '260px', maxWidth: '260px',
+                backgroundColor: '#fff', borderRadius: '14px',
+                overflow: 'hidden', border: '1px solid #E8DDD4',
+                boxShadow: '0 2px 10px rgba(100,50,20,0.08)',
+                scrollSnapAlign: 'start', flexShrink: 0,
+              }}>
+                <div style={{ height: '160px', overflow: 'hidden' }}>
+                  <img src={resort.image} alt={resort.name}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                   />
-                  <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-sm text-white px-2.5 py-1 rounded-full text-xs font-semibold">
-                    {resort.category}
+                </div>
+                <div style={{ padding: '14px' }}>
+                  <h3 style={{
+                    fontFamily: "'Cormorant Garamond', serif",
+                    fontSize: '1.1rem', fontWeight: 600,
+                    color: '#1A120B', margin: '0 0 4px',
+                  }}>{resort.name}</h3>
+                  <p style={{
+                    fontSize: '12px', color: '#9E8B7B',
+                    fontFamily: "'Plus Jakarta Sans', sans-serif", margin: '0 0 10px',
+                  }}>{resort.location}</p>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{
+                      fontFamily: "'Cormorant Garamond', serif",
+                      fontSize: '1.1rem', fontWeight: 700, color: '#3D5A3E',
+                    }}>₹{resort.pricePerNight}<span style={{ fontSize: '11px', color: '#9E8B7B' }}>/night</span></span>
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        onBookNow && onBookNow(resort);
+                      }}
+                      style={{
+                        backgroundColor: '#C4622D', color: '#fff',
+                        padding: '6px 14px', borderRadius: '100px',
+                        border: 'none', fontSize: '12px', fontWeight: '600',
+                        fontFamily: "'Plus Jakarta Sans', sans-serif",
+                        cursor: 'pointer',
+                      }}
+                    >Book →</button>
                   </div>
                 </div>
-                <div className="p-4">
-                  <h3 className="font-playfair font-bold text-[#1C1C1E] text-base leading-snug mb-1">{resort.name}</h3>
-                  <div className="flex items-center gap-1 mb-2">
-                    <Star size={12} fill="#E9A84C" stroke="none" />
-                    <span className="text-xs font-semibold text-[#1C1C1E]">{resort.rating}</span>
-                    <span className="text-xs text-[#6B7280]">({resort.reviewCount})</span>
-                  </div>
-                  <div className="flex items-center gap-1 text-xs text-[#6B7280] mb-3">
-                    <MapPin size={11} className="text-[#2D6A4F]" />
-                    {resort.location}
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <p className="text-xs text-[#6B7280]">From <span className="font-bold text-[#1C1C1E] text-sm">₹{resort.pricePerNight.toLocaleString('en-IN')}</span>/night</p>
-                    <span className="text-[#2D6A4F] text-xs font-semibold group-hover:translate-x-0.5 transition-transform">Book →</span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px' }}>
+            {resorts.map(resort => (
+              <div key={resort.id} style={{
+                backgroundColor: '#fff', borderRadius: '14px',
+                overflow: 'hidden', border: '1px solid #E8DDD4',
+                boxShadow: '0 2px 10px rgba(100,50,20,0.08)',
+                transition: 'transform 0.2s',
+                cursor: 'pointer',
+              }} className="card-image-zoom"
+              onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-4px)'}
+              onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
+              >
+                <div style={{ height: '160px', overflow: 'hidden' }}>
+                  <img src={resort.image} alt={resort.name}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  />
+                </div>
+                <div style={{ padding: '14px' }}>
+                  <h3 style={{
+                    fontFamily: "'Cormorant Garamond', serif",
+                    fontSize: '1.1rem', fontWeight: 600,
+                    color: '#1A120B', margin: '0 0 4px',
+                  }}>{resort.name}</h3>
+                  <p style={{
+                    fontSize: '12px', color: '#9E8B7B',
+                    fontFamily: "'Plus Jakarta Sans', sans-serif", margin: '0 0 10px',
+                  }}>{resort.location}</p>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{
+                      fontFamily: "'Cormorant Garamond', serif",
+                      fontSize: '1.1rem', fontWeight: 700, color: '#3D5A3E',
+                    }}>₹{resort.pricePerNight}<span style={{ fontSize: '11px', color: '#9E8B7B' }}>/night</span></span>
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        onBookNow && onBookNow(resort);
+                      }}
+                      style={{
+                        backgroundColor: '#C4622D', color: '#fff',
+                        padding: '6px 14px', borderRadius: '100px',
+                        border: 'none', fontSize: '12px', fontWeight: '600',
+                        fontFamily: "'Plus Jakarta Sans', sans-serif",
+                        cursor: 'pointer',
+                      }}
+                    >Book →</button>
                   </div>
                 </div>
-              </Link>
-            </motion.div>
-          ))}
-        </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );

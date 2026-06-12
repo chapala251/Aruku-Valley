@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { resorts } from '../data/resorts';
+import { supabase } from '../lib/supabase';
 import ArakuNavTabs from '../components/ArakuNavTabs';
+import ResortBookingModal from '../components/shared/ResortBookingModal';
 import { Star, MapPin, Wifi, Coffee, Car, Flame, MessageCircle } from 'lucide-react';
 import SectionHeader from '../components/shared/SectionHeader';
 
@@ -20,17 +21,37 @@ const pageVariants = {
 };
 
 export default function Resorts() {
+  const [bookingOpen, setBookingOpen] = useState(false);
+  const [selectedResort, setSelectedResort] = useState(null);
+  const [resorts, setResorts] = useState([]);
+
+  const stored = localStorage.getItem('user');
+  const user = stored ? JSON.parse(stored) : null;
+  const isAdmin = user?.email === 'arakuecostays@gmail.com';
+
+  useEffect(() => {
+    supabase.from('resorts').select('*')
+      .eq('published', true)
+      .order('created_at', { ascending: false })
+      .then(({ data }) => setResorts(data || []));
+  }, []);
+
   return (
     <motion.div variants={pageVariants} initial="initial" animate="animate" exit="exit" className="min-h-screen pt-8 md:pt-36">
       <ArakuNavTabs />
       {/* Header */}
       <section className="py-20 md:py-24 px-5 md:px-8 bg-[#EFF7F2]" id="resorts-header">
-        <div className="max-w-7xl mx-auto">
+        <div className="max-w-7xl mx-auto flex items-start justify-between flex-wrap gap-4">
           <SectionHeader
             badge="Where to Stay"
             title="Resorts & Hotels in Araku Valley"
             subtitle="Handpicked stays that bring you closer to the magic of the Eastern Ghats."
           />
+          {isAdmin && (
+            <Link to="/admin/resort/new" style={{ backgroundColor: '#C4622D', color: '#fff', padding: '10px 20px', borderRadius: '100px', textDecoration: 'none', fontSize: '13px', fontWeight: '600', whiteSpace: 'nowrap' }}>
+              + Add Resort
+            </Link>
+          )}
         </div>
       </section>
 
@@ -60,7 +81,7 @@ export default function Resorts() {
                   </span>
                 </div>
                 <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-sm text-white px-3 py-1.5 rounded-full text-sm font-bold">
-                  ₹{resort.pricePerNight.toLocaleString('en-IN')}<span className="text-xs font-normal">/night</span>
+                  ₹{resort.price_per_night?.toLocaleString('en-IN')}<span className="text-xs font-normal">/night</span>
                 </div>
               </div>
               <div className="p-6">
@@ -69,7 +90,7 @@ export default function Resorts() {
                   <div className="flex items-center gap-1 shrink-0">
                     <Star size={14} fill="#E9A84C" stroke="none" />
                     <span className="text-sm font-bold text-[#1C1C1E]">{resort.rating}</span>
-                    <span className="text-xs text-[#6B7280]">({resort.reviewCount})</span>
+                    <span className="text-xs text-[#6B7280]">({resort.review_count})</span>
                   </div>
                 </div>
                 <p className="text-sm text-[#E9A84C] font-medium mb-2">{resort.tagline}</p>
@@ -80,25 +101,28 @@ export default function Resorts() {
 
                 {/* Amenities */}
                 <div className="flex flex-wrap gap-2 mb-5">
-                  {resort.amenities.slice(0, 5).map((a) => (
+                  {(resort.amenities || []).slice(0, 5).map((a) => (
                     <span key={a} className="text-xs bg-[#EFF7F2] text-[#2D6A4F] px-2.5 py-1 rounded-full">{a}</span>
                   ))}
-                  {resort.amenities.length > 5 && (
-                    <span className="text-xs bg-[#F4E9D8] text-[#6B7280] px-2.5 py-1 rounded-full">+{resort.amenities.length - 5} more</span>
+                  {(resort.amenities || []).length > 5 && (
+                    <span className="text-xs bg-[#F4E9D8] text-[#6B7280] px-2.5 py-1 rounded-full">+{(resort.amenities || []).length - 5} more</span>
                   )}
                 </div>
 
                 <div className="flex gap-3">
-                  <a
-                    href={resort.whatsapp}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setSelectedResort(resort);
+                      setBookingOpen(true);
+                    }}
                     id={`book-resort-${resort.id}`}
                     className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-white font-semibold text-sm"
-                    style={{ backgroundColor: '#25D366' }}
+                    style={{ backgroundColor: '#2D6A4F' }}
                   >
-                    <MessageCircle size={16} /> Book Now
-                  </a>
+                    Book Now
+                  </button>
                   <Link
                     to={`/resorts/${resort.slug}`}
                     id={`view-resort-${resort.id}`}
@@ -107,11 +131,32 @@ export default function Resorts() {
                     View Details →
                   </Link>
                 </div>
+                {isAdmin && (
+                  <Link
+                    to={`/admin/resort/edit/${resort.id}`}
+                    style={{
+                      display: 'block', textAlign: 'center',
+                      marginTop: '8px', padding: '8px',
+                      backgroundColor: '#FEF3E2', color: '#C4622D',
+                      borderRadius: '8px', fontSize: '12px',
+                      fontWeight: '600', textDecoration: 'none',
+                      border: '1px solid #C4622D'
+                    }}
+                  >
+                    ✏️ Edit Resort
+                  </Link>
+                )}
               </div>
             </motion.div>
           ))}
         </div>
       </section>
-    </motion.div>
+
+      <ResortBookingModal
+        isOpen={bookingOpen}
+        onClose={() => setBookingOpen(false)}
+        resortName={selectedResort?.name}
+      />
+    </motion.div >
   );
 }

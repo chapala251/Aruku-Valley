@@ -48,7 +48,14 @@ export default function HeroSection() {
           <motion.h1
             variants={itemVariants}
             className="hero-title font-playfair font-bold text-white"
-            style={{ textShadow: '0 2px 20px rgba(0,0,0,0.4)' }}
+            style={{
+              textShadow: '0 2px 20px rgba(0,0,0,0.4)',
+              fontSize: 'clamp(1rem, 8vw, 4.5rem)',
+              letterSpacing: '-0.02em',
+              lineHeight: 1.05,
+              padding: '0 16px',
+              wordBreak: 'break-word',
+            }}
           >
             Discover Araku Valley
           </motion.h1>

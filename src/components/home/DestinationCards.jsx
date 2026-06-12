@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
@@ -40,6 +40,14 @@ const destinations = [
 ];
 
 export default function DestinationCards() {
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
+
   return (
     <section className="py-20 px-5 md:px-8 bg-[#EFF7F2]" id="destinations">
       <div className="max-w-7xl mx-auto">
@@ -57,58 +65,102 @@ export default function DestinationCards() {
           />
         </motion.div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
-          {destinations.map((dest, i) => (
-            <motion.div
-              key={dest.id}
-              initial={{ opacity: 0, scale: 0.95 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.1, duration: 0.4 }}
-            >
-              <Link
-                to={dest.to}
-                id={dest.id}
-                className="group relative block rounded-[16px] overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
-                style={{ height: '280px', cursor: 'pointer' }}
-              >
-                <img
-                  src={dest.image}
-                  alt={dest.name}
-                  className="group-hover:scale-105 transition-transform duration-500"
-                  style={{
-                    position: 'absolute',
-                    inset: 0,
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'cover',
-                    objectPosition: 'center',
-                    display: 'block',
-                    zIndex: 0,
-                  }}
-                  loading="lazy"
-                  onError={(e) => {
-                    e.target.src = '/visakhapatnam-araku-valley.jpg';
-                  }}
+        {isMobile ? (
+          <div style={{
+            display: 'flex',
+            overflowX: 'auto',
+            gap: '14px',
+            padding: '8px 16px 16px',
+            scrollbarWidth: 'none',
+            WebkitOverflowScrolling: 'touch',
+            scrollSnapType: 'x mandatory',
+          }} className="horizontal-scroll">
+            {destinations.map(dest => (
+              <div key={dest.name} style={{
+                minWidth: '220px',
+                maxWidth: '220px',
+                height: '280px',
+                borderRadius: '16px',
+                overflow: 'hidden',
+                position: 'relative',
+                scrollSnapAlign: 'start',
+                flexShrink: 0,
+                cursor: 'pointer',
+              }}>
+                <img src={dest.image} alt={dest.name}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                 />
                 <div style={{
-                  position: 'absolute',
-                  inset: 0,
-                  background: 'linear-gradient(to top, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.38) 45%, rgba(0,0,0,0) 100%)',
-                  borderRadius: 'inherit',
-                  zIndex: 1,
+                  position: 'absolute', inset: 0,
+                  background: 'linear-gradient(to top, rgba(0,0,0,0.78) 0%, rgba(0,0,0,0) 55%)',
+                  borderRadius: '16px',
                 }} />
-                <div className="absolute bottom-0 left-0 right-0 p-4" style={{ zIndex: 2 }}>
-                  <h3 className="font-playfair font-bold text-white text-lg leading-tight">{dest.name}</h3>
-                  <p className="text-white/80 text-xs mt-1">{dest.tagline}</p>
-                  <span className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-white/90 group-hover:gap-2 transition-all">
-                    Explore <ArrowRight size={12} />
-                  </span>
+                <div style={{ position: 'absolute', bottom: '16px', left: '16px', right: '16px' }}>
+                  <p style={{
+                    color: '#FAF7F2', fontFamily: "'Cormorant Garamond', serif",
+                    fontSize: '1.2rem', fontWeight: 600, margin: '0 0 4px',
+                  }}>{dest.name}</p>
+                  <p style={{
+                    color: 'rgba(255,255,255,0.75)',
+                    fontFamily: "'Plus Jakarta Sans', sans-serif",
+                    fontSize: '12px', margin: '0 0 8px',
+                  }}>{dest.tagline}</p>
+                  <Link to={dest.to} style={{
+                    color: '#FAF7F2', fontSize: '12px', fontWeight: '600',
+                    textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px',
+                    fontFamily: "'Plus Jakarta Sans', sans-serif",
+                  }}>
+                    Explore →
+                  </Link>
                 </div>
-              </Link>
-            </motion.div>
-          ))}
-        </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(4, 1fr)',
+            gap: '20px',
+          }}>
+            {destinations.map(dest => (
+              <div key={dest.name} style={{
+                height: '280px',
+                borderRadius: '16px',
+                overflow: 'hidden',
+                position: 'relative',
+                cursor: 'pointer',
+              }} className="card-image-zoom">
+                <img src={dest.image} alt={dest.name}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                />
+                <div style={{
+                  position: 'absolute', inset: 0,
+                  background: 'linear-gradient(to top, rgba(0,0,0,0.78) 0%, rgba(0,0,0,0) 55%)',
+                  borderRadius: '16px',
+                }} />
+                <div style={{ position: 'absolute', bottom: '16px', left: '16px', right: '16px' }}>
+                  <p style={{
+                    color: '#FAF7F2', fontFamily: "'Cormorant Garamond', serif",
+                    fontSize: '1.2rem', fontWeight: 600, margin: '0 0 4px',
+                  }}>{dest.name}</p>
+                  <p style={{
+                    color: 'rgba(255,255,255,0.75)',
+                    fontFamily: "'Plus Jakarta Sans', sans-serif",
+                    fontSize: '12px', margin: '0 0 8px',
+                  }}>{dest.tagline}</p>
+                  <Link to={dest.to} style={{
+                    color: '#FAF7F2', fontSize: '12px', fontWeight: '600',
+                    textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px',
+                    fontFamily: "'Plus Jakarta Sans', sans-serif",
+                  }}>
+                    Explore →
+                  </Link>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
       </div>
     </section>
   );

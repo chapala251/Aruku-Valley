@@ -47,23 +47,44 @@ export default function Signup() {
       // 2. Hash password
       const passwordHash = await bcrypt.hash(data.password, 10);
 
-      // 3. Insert into Supabase
-      const { error } = await supabase
-        .from('users')
-        .insert([{
+      // 3. Register with Supabase Auth
+      const { data: authData, error } = await supabase.auth.signUp({
+        email: data.email,
+        password: data.password,
+        options: {
+          data: {
+            full_name: data.name,
+            phone: data.phone || null,
+          }
+        }
+      });
+
+      // Keep the custom table insert for backward compatibility in case other parts of the app rely on it
+      if (!error) {
+        await supabase.from('users').insert([{
+          user_id: authData?.user?.id,
           full_name: data.name,
           email: data.email,
           mobile_number: data.phone || null,
           password_hash: passwordHash
-        }])
-        .select();
+        }]);
+      }
 
       if (error) {
         console.error("Sign-up error:", error);
         toast.error(error.message);
       } else {
-        toast.success("Account created successfully!");
-        navigate('/dashboard');
+        toast.success("Account created! Check your email to confirm.");
+        localStorage.setItem('user', JSON.stringify({
+          isLoggedIn: true,
+          id: authData.user.id,
+          email: authData.user.email,
+        }));
+        if (authData.user.email === 'arakuecostays@gmail.com') {
+          navigate('/admin/dashboard');
+        } else {
+          navigate('/dashboard');
+        }
       }
     } catch (err) {
       console.error("Sign-up error:", err);

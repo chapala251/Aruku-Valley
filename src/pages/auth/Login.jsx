@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -26,58 +26,38 @@ export default function Login() {
   const onSubmit = async (data) => {
     setIsLoading(true);
     try {
-      // 1. Query user from database
-      console.log("Searching for user with email:", data.email);
-      
-      const { data: user, error: fetchError } = await supabase
-        .from('users')
-        .select('*')
-        .eq('email', data.email)
-        .single();
+      console.log("Attempting Supabase Auth login for:", data.email);
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+        email: data.email,
+        password: data.password
+      });
 
-      // 2. Check if user exists
-      if (fetchError || !user) {
-        console.log("User not found");
-        toast.error("Incorrect email or password");
+      if (authError) {
+        console.error("Auth error:", authError);
+        if (authError.message.includes('Email not confirmed')) {
+          toast.error('Please confirm your email first. Check your inbox for the confirmation link.');
+        } else {
+          toast.error(authError.message || "Incorrect email or password");
+        }
         setIsLoading(false);
         return;
       }
 
-      console.log("User found:", user.email);
-      console.log("Password hash from DB:", user.password_hash);
-
-      // 3. Verify password using bcrypt.compare
-      const isPasswordCorrect = await bcrypt.compare(data.password, user.password_hash);
+      console.log("Login successful for:", authData.user.email);
       
-      console.log("Password verification result:", isPasswordCorrect);
-
-      // 4. Check verification result
-      if (!isPasswordCorrect) {
-        toast.error("Incorrect email or password");
-        setIsLoading(false);
-        return;
-      }
-
-      // 5. Update last login
-      await supabase
-        .from('users')
-        .update({ last_login: new Date().toISOString() })
-        .eq('user_id', user.user_id);
-
-      // 6. Login successful
-      console.log("Login successful for:", user.email);
-      
+      // Store in localStorage for backward compatibility with other parts of the app
       localStorage.setItem('user', JSON.stringify({
         isLoggedIn: true,
-        id: user.user_id,
-        name: user.full_name,
-        email: user.email,
-        phone: user.mobile_number,
-        createdAt: user.created_at
+        id: authData.user.id,
+        email: authData.user.email,
       }));
 
       toast.success('Welcome back! 🌿');
-      navigate('/dashboard');
+      if (authData.user.email === 'arakuecostays@gmail.com') {
+        navigate('/admin/dashboard');
+      } else {
+        navigate('/dashboard');
+      }
     } catch (err) {
       toast.error('An error occurred during sign in.');
       console.error(err);

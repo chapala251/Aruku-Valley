@@ -20,21 +20,32 @@ export const cardVariants = {
   animate: { opacity: 1, y: 0, transition: { duration: 0.4 } },
 };
 
-export default function PackageCard({ pkg }) {
+export default function PackageCard({ pkg, isAdmin, onBookNow }) {
   return (
     <motion.div
       variants={cardVariants}
-      className="bg-[#FFFBF4] rounded-2xl overflow-hidden shadow-sm border border-[#F4E9D8] hover:shadow-xl transition-all duration-300 hover:-translate-y-1 flex flex-col card-image-zoom"
+      className="relative bg-[#FFFBF4] rounded-2xl overflow-hidden shadow-sm border border-[#F4E9D8] hover:shadow-xl transition-all duration-300 hover:-translate-y-1 flex flex-col card-image-zoom"
     >
+      {isAdmin && (
+        <Link to={`/admin/package/edit/${pkg.id}`} style={{
+          position: 'absolute', top: '12px', right: '12px',
+          backgroundColor: '#C4622D', color: '#fff',
+          fontSize: '11px', fontWeight: '600',
+          padding: '4px 10px', borderRadius: '100px',
+          textDecoration: 'none', zIndex: 10,
+        }}>
+          ✏️ Edit
+        </Link>
+      )}
       {/* Image */}
-      <div className="relative overflow-hidden h-52">
+      <div className="relative overflow-hidden h-36">
         <img
           src={pkg.image}
           alt={pkg.title}
           onError={(e) => {
             e.target.src = 'https://araku-valley.com/wp-content/uploads/2024/06/ARAKU-VALLEY.png';
           }}
-          style={{ width: '100%', height: '200px', objectFit: 'cover', display: 'block' }}
+          style={{ width: '100%', height: '144px', objectFit: 'cover', display: 'block' }}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
         <div className="absolute top-3 left-3 flex gap-2 flex-wrap">
@@ -48,34 +59,34 @@ export default function PackageCard({ pkg }) {
       </div>
 
       {/* Content */}
-      <div className="p-5 flex flex-col flex-1">
+      <div className="p-3 flex flex-col flex-1">
         <h3 style={{
-          fontSize: '1rem',
+          fontSize: '0.85rem',
           fontWeight: '600',
           display: '-webkit-box',
           WebkitLineClamp: 2,
           WebkitBoxOrient: 'vertical',
           overflow: 'hidden',
-          minHeight: '2.8em',
+          minHeight: '2.4em',
           lineHeight: '1.4',
-          marginBottom: '8px',
+          marginBottom: '6px',
           color: '#1C1C1E',
           fontFamily: 'var(--font-playfair)'
         }}>
           {pkg.title}
         </h3>
 
-        <div className="flex items-center gap-2 mb-2">
-          <StarRating rating={pkg.rating} size={14} />
-          <span className="text-sm text-[#6B7280]">{pkg.rating} ({pkg.reviewCount} reviews)</span>
+        <div className="flex items-center gap-1 mb-1">
+          <StarRating rating={pkg.rating} size={11} />
+          <span className="text-xs text-[#6B7280]">{pkg.rating} ({pkg.reviewCount} reviews)</span>
         </div>
 
-        <div className="flex items-center gap-1.5 text-sm text-[#6B7280] mb-3">
+        <div className="flex items-center gap-1 text-xs text-[#6B7280] mb-2">
           <MapPin size={14} className="text-[#2D6A4F] shrink-0" />
           <span>{pkg.location}</span>
         </div>
 
-        {/* Includes */}
+        {/* Includes & Excludes */}
         <div className="flex flex-wrap gap-1.5 mb-4">
           {pkg.includes?.map((item) => (
             <span
@@ -86,37 +97,68 @@ export default function PackageCard({ pkg }) {
               {item}
             </span>
           ))}
+          {pkg.excludes?.map((item) => (
+            <span
+              key={item}
+              className="flex items-center gap-1 text-xs bg-[#FFF5F5] text-[#C53030] px-2.5 py-1 rounded-full font-medium"
+            >
+              <span style={{ fontSize: '9px' }}>❌</span>
+              {item}
+            </span>
+          ))}
         </div>
 
         {/* Price + CTA */}
-        <div className="mt-auto pt-5 border-t border-[#F4E9D8] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="mt-auto pt-3 border-t border-[#F4E9D8] flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div>
             <p className="text-xs text-[#6B7280] mb-0.5">Starting from</p>
             {pkg.price ? (
-              <p className="font-playfair font-bold text-[#1C1C1E] text-xl">
-                ₹{pkg.price.toLocaleString('en-IN')}
-                <span className="text-xs text-[#6B7280] font-normal ml-1">/{pkg.priceLabel}</span>
-              </p>
+              <div className="flex flex-col">
+                {pkg.mrp && pkg.mrp > pkg.price && (
+                  <div className="flex items-center gap-2 mb-0.5">
+                    <span className="text-sm text-[#9ca3af] line-through">₹{pkg.mrp.toLocaleString('en-IN')}</span>
+                    <span className="text-xs font-bold text-[#16a34a] bg-[#dcfce7] px-1.5 py-0.5 rounded">
+                      Save {Math.round(((pkg.mrp - pkg.price) / pkg.mrp) * 100)}%
+                    </span>
+                  </div>
+                )}
+                <p className="font-playfair font-bold text-[#1C1C1E] text-xl">
+                  ₹{pkg.price.toLocaleString('en-IN')}
+                  <span className="text-xs text-[#6B7280] font-normal ml-1">/{pkg.priceLabel || pkg.price_label}</span>
+                </p>
+              </div>
             ) : (
-              <p className="font-playfair font-bold text-[#E9A84C] text-lg">{pkg.priceLabel}</p>
+              <p className="font-playfair font-bold text-[#E9A84C] text-lg">{pkg.priceLabel || pkg.price_label}</p>
             )}
           </div>
           <div className="flex flex-wrap gap-2 w-full sm:w-auto">
-            <a
-              href={pkg.whatsapp}
-              target="_blank"
-              rel="noopener noreferrer"
-              id={`enquiry-${pkg.id}`}
-              className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-5 md:px-8 py-2.5 rounded-xl text-xs font-semibold transition-all hover:opacity-90"
-              style={{ backgroundColor: '#25D366', color: 'white' }}
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (onBookNow) onBookNow();
+              }}
+              style={{
+                backgroundColor: '#C4622D',
+                color: '#fff',
+                padding: '6px 12px',
+                borderRadius: '100px',
+                border: 'none',
+                cursor: 'pointer',
+                fontSize: '11px',
+                fontWeight: '600',
+                fontFamily: "'Plus Jakarta Sans', sans-serif",
+                transition: 'background-color 0.2s',
+              }}
+              onMouseEnter={e => e.currentTarget.style.backgroundColor = '#A04E22'}
+              onMouseLeave={e => e.currentTarget.style.backgroundColor = '#C4622D'}
             >
-              <MessageCircle size={14} />
-              Enquire
-            </a>
+              Book Now
+            </button>
             <Link
               to={`/packages/${pkg.slug}`}
               id={`view-${pkg.id}`}
-              className="flex-1 sm:flex-none flex items-center justify-center px-5 md:px-8 py-2.5 bg-[#2D6A4F] text-white rounded-xl text-xs font-semibold hover:bg-[#245a41] transition-colors"
+              className="flex-1 sm:flex-none flex items-center justify-center px-3 md:px-4 py-1.5 bg-[#2D6A4F] text-white rounded-xl text-xs font-semibold hover:bg-[#245a41] transition-colors"
             >
               View Details →
             </Link>

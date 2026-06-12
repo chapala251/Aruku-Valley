@@ -4,6 +4,7 @@ export const packages = [
     title: "Vizag to Araku — 1 Day",
     slug: "vizag-araku-1-day-package",
     price: 5499,
+    mrp: 6999,
     priceLabel: "per Couple",
     duration: "1 Day",
     type: "Day Trip",
@@ -17,6 +18,7 @@ export const packages = [
       "https://araku-valley.com/wp-content/uploads/2024/06/ARAKU-VALLEY.png",
     ],
     includes: ["Transportation Only"],
+    excludes: ["Accommodation", "Food"],
     highlights: ["Borra Caves", "Katika Waterfalls", "Coffee Plantations"],
     itinerary: [
       { time: "06:00 AM", place: "Pickup from Vizag", description: "Start your journey from Visakhapatnam" },
@@ -42,6 +44,7 @@ export const packages = [
     title: "Vizag to Araku — 1N/2D",
     slug: "vizag-araku-1night-2days",
     price: 9999,
+    mrp: 12499,
     priceLabel: "per Couple",
     duration: "1 Night / 2 Days",
     type: "Overnight",
@@ -54,6 +57,7 @@ export const packages = [
       "https://araku-valley.com/wp-content/uploads/2025/03/araku-valley.com-1-300x300.jpg",
     ],
     includes: ["Transportation", "Accommodation"],
+    excludes: ["Lunch & Dinner"],
     highlights: ["Borra Caves", "Katika Waterfalls", "Overnight Stay", "Madagada View Point"],
     itinerary: [
       { time: "Day 1 — 06:00 AM", place: "Pickup from Vizag", description: "Start your overnight journey" },
@@ -79,6 +83,7 @@ export const packages = [
     title: "Vizag → Araku → Vanjangi → Lambasingi — 3N/4D",
     slug: "vizag-araku-vanjangi-lambasingi-3n4d",
     price: 24999,
+    mrp: 29999,
     priceLabel: "per Couple",
     duration: "3 Nights / 4 Days",
     type: "Extended Tour",
@@ -91,6 +96,7 @@ export const packages = [
       "https://araku-valley.com/wp-content/uploads/2025/03/araku-valley.com-2-300x300.jpg",
     ],
     includes: ["Transportation", "Accommodation"],
+    excludes: ["Personal Expenses"],
     highlights: ["Borra Caves", "Vanjangi Sea of Clouds", "Lambasingi", "Strawberry Farms"],
     itinerary: [
       { time: "Day 1 — 06:00 AM", place: "Vizag to Araku", description: "Pickup and journey to Araku Valley" },

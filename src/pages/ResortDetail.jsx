@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link, Navigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { resorts } from '../data/resorts';
-import { Star, MapPin, ArrowLeft, MessageCircle, CheckCircle } from 'lucide-react';
+import { supabase } from '../lib/supabase';
+import ResortBookingModal from '../components/shared/ResortBookingModal';
+import { Star, MapPin, ArrowLeft, CheckCircle } from 'lucide-react';
 
 const pageVariants = {
   initial: { opacity: 0, y: 20 },
@@ -10,96 +11,209 @@ const pageVariants = {
   exit: { opacity: 0, transition: { duration: 0.25 } },
 };
 
+function parseArr(val) {
+  if (!val) return [];
+  if (Array.isArray(val)) return val;
+  try { return JSON.parse(val); } catch { return []; }
+}
+
 export default function ResortDetail() {
   const { slug } = useParams();
-  const resort = resorts.find((r) => r.slug === slug);
+  const [resort, setResort] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [bookingOpen, setBookingOpen] = useState(false);
+  const [showTerms, setShowTerms] = useState(false);
+
+  const stored = localStorage.getItem('user');
+  const user = stored ? JSON.parse(stored) : null;
+  const isAdmin = user?.email === 'arakuecostays@gmail.com';
+
+  useEffect(() => {
+    supabase.from('resorts').select('*').eq('slug', slug).single()
+      .then(({ data }) => { setResort(data); setLoading(false); });
+  }, [slug]);
+
+  if (loading) return (
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <p style={{ color: '#6B7280' }}>Loading...</p>
+    </div>
+  );
 
   if (!resort) return <Navigate to="/resorts" replace />;
 
+  const highlights = parseArr(resort.highlights);
+  const amenities = parseArr(resort.amenities);
+
   return (
-    <motion.div variants={pageVariants} initial="initial" animate="animate" exit="exit" className="min-h-screen pt-24 md:pt-32">
+    <motion.div
+      variants={pageVariants}
+      initial="initial"
+      animate="animate"
+      exit="exit"
+      style={{ minHeight: '100vh', backgroundColor: '#FFFBF4', paddingTop: '64px' }}
+    >
       {/* Hero */}
-      <div className="relative h-72 md:h-96">
+      <div style={{ position: 'relative', height: '280px', overflow: 'hidden' }}>
         <img
           src={resort.image}
           alt={resort.name}
-          className="w-full h-full object-cover"
+          style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
           onError={(e) => { e.target.src = 'https://araku-valley.com/wp-content/uploads/2024/06/ARAKU-VALLEY.png'; }}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
-        <div className="absolute bottom-0 left-0 right-0 p-6 md:p-10">
-          <Link to="/resorts" className="inline-flex items-center gap-2 text-white/80 hover:text-white text-sm mb-4 transition-colors">
-            <ArrowLeft size={16} /> Back to Resorts
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.75) 0%, transparent 60%)' }} />
+        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '24px 32px' }}>
+          <Link to="/resorts" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: 'rgba(255,255,255,0.8)', fontSize: '13px', textDecoration: 'none', marginBottom: '10px' }}>
+            <ArrowLeft size={15} /> Back to Resorts
           </Link>
-          <span className="inline-block bg-[#2D6A4F] text-white text-xs font-semibold px-3 py-1 rounded-full mb-3">{resort.category}</span>
-          <h1 className="font-playfair font-bold text-white text-2xl md:text-4xl">{resort.name}</h1>
-          <p className="text-[#E9A84C] font-medium mt-1">{resort.tagline}</p>
+          <div>
+            <span style={{ display: 'inline-block', backgroundColor: '#2D6A4F', color: 'white', fontSize: '11px', fontWeight: '600', padding: '3px 12px', borderRadius: '100px', marginBottom: '8px' }}>
+              {resort.category}
+            </span>
+          </div>
+          <h1 style={{ fontFamily: 'Playfair Display, serif', fontWeight: '700', color: 'white', fontSize: '1.8rem', margin: '0 0 4px' }}>{resort.name}</h1>
+          <p style={{ color: '#E9A84C', fontWeight: '500', margin: 0, fontSize: '14px' }}>{resort.tagline}</p>
         </div>
+        {isAdmin && (
+          <Link to={`/admin/resort/edit/${resort.id}`} style={{
+            position: 'absolute', top: '12px', right: '12px',
+            backgroundColor: '#C4622D', color: '#fff',
+            padding: '5px 12px', borderRadius: '100px',
+            fontSize: '12px', fontWeight: '600', textDecoration: 'none', zIndex: 10
+          }}>✏️ Edit Resort</Link>
+        )}
       </div>
 
       {/* Content */}
-      <div className="max-w-7xl mx-auto px-5 md:px-8 py-10 grid grid-cols-1 lg:grid-cols-3 gap-10">
-        {/* Left */}
-        <div className="lg:col-span-2 space-y-8">
-          <div className="flex flex-wrap items-center gap-4 pb-6 border-b border-[#F4E9D8]">
-            <div className="flex items-center gap-1">
-              <Star size={16} fill="#E9A84C" stroke="none" />
-              <span className="font-bold text-[#1C1C1E]">{resort.rating}</span>
-              <span className="text-[#6B7280] text-sm">({resort.reviewCount} reviews)</span>
+      <div style={{ backgroundColor: '#FFFBF4', width: '100%' }}>
+        <div style={{
+          maxWidth: '1200px', margin: '0 auto',
+          padding: '40px 32px',
+          display: 'grid',
+          gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 1fr)',
+          gap: '40px',
+          alignItems: 'start'
+        }}>
+
+          {/* Left */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
+
+            {/* Rating + Location */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', paddingBottom: '20px', borderBottom: '1px solid #F4E9D8' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <Star size={15} fill="#E9A84C" stroke="none" />
+                <span style={{ fontWeight: '700', color: '#1C1C1E', fontSize: '14px' }}>{resort.rating}</span>
+                <span style={{ color: '#6B7280', fontSize: '13px' }}>({resort.review_count} reviews)</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '13px', color: '#6B7280' }}>
+                <MapPin size={13} color="#2D6A4F" /> {resort.location}
+              </div>
             </div>
-            <div className="flex items-center gap-1.5 text-sm text-[#6B7280]">
-              <MapPin size={14} className="text-[#2D6A4F]" /> {resort.location}
+
+            {/* About */}
+            <div>
+              <h2 style={{ fontFamily: 'Playfair Display, serif', fontWeight: '700', color: '#1C1C1E', fontSize: '1.2rem', marginBottom: '10px' }}>About the Resort</h2>
+              <p style={{ color: '#6B7280', lineHeight: '1.7', margin: 0, fontSize: '14px' }}>{resort.description}</p>
+            </div>
+
+            {/* Highlights */}
+            {highlights.length > 0 && (
+              <div>
+                <h2 style={{ fontFamily: 'Playfair Display, serif', fontWeight: '700', color: '#1C1C1E', fontSize: '1.2rem', marginBottom: '12px' }}>Highlights</h2>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {highlights.map((h, i) => (
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', color: '#1C1C1E' }}>
+                      <CheckCircle size={15} color="#2D6A4F" style={{ flexShrink: 0 }} /> {h}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Amenities */}
+            {amenities.length > 0 && (
+              <div>
+                <h2 style={{ fontFamily: 'Playfair Display, serif', fontWeight: '700', color: '#1C1C1E', fontSize: '1.2rem', marginBottom: '12px' }}>Amenities</h2>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
+                  {amenities.map((a, i) => (
+                    <span key={i} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', backgroundColor: '#EFF7F2', color: '#2D6A4F', padding: '8px 10px', borderRadius: '8px' }}>
+                      <CheckCircle size={12} /> {a}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Sidebar */}
+          <div style={{ position: 'sticky', top: '84px' }}>
+            <div style={{ backgroundColor: 'white', borderRadius: '16px', border: '1px solid #F4E9D8', boxShadow: '0 8px 32px rgba(0,0,0,0.1)', padding: '24px' }}>
+              <p style={{ fontSize: '13px', color: '#6B7280', margin: '0 0 4px' }}>Price per night</p>
+              <p style={{ fontFamily: 'Playfair Display, serif', fontWeight: '700', fontSize: '2rem', color: '#1C1C1E', margin: '0 0 4px' }}>
+                ₹{resort.price_per_night?.toLocaleString('en-IN')}
+              </p>
+              <p style={{ fontSize: '12px', color: '#6B7280', margin: '0 0 20px' }}>Taxes included · Free cancellation</p>
+              <button
+                onClick={() => setBookingOpen(true)}
+                style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '14px', borderRadius: '10px', backgroundColor: '#2D6A4F', color: 'white', fontWeight: '700', fontSize: '15px', border: 'none', cursor: 'pointer' }}
+              >
+                🏨 Book Now
+              </button>
+              <p style={{ textAlign: 'center', fontSize: '11px', color: '#9ca3af', margin: '10px 0 0' }}>
+                By booking you agree to our{' '}
+                <span
+                  onClick={() => setShowTerms(true)}
+                  style={{ color: '#2D6A4F', cursor: 'pointer', textDecoration: 'underline' }}
+                >
+                  Terms & Conditions
+                </span>
+              </p>
             </div>
           </div>
 
-          <div>
-            <h2 className="font-playfair font-bold text-[#1C1C1E] text-xl mb-3">About the Resort</h2>
-            <p className="text-[#6B7280] leading-relaxed">{resort.description}</p>
-          </div>
+        </div>
+      </div>
 
-          <div>
-            <h2 className="font-playfair font-bold text-[#1C1C1E] text-xl mb-4">Highlights</h2>
-            <div className="space-y-2">
-              {resort.highlights.map((h) => (
-                <div key={h} className="flex items-center gap-3 text-sm text-[#1C1C1E]">
-                  <CheckCircle size={16} className="text-[#2D6A4F] shrink-0" /> {h}
+      <ResortBookingModal
+        isOpen={bookingOpen}
+        onClose={() => setBookingOpen(false)}
+        resortName={resort.name}
+      />
+
+      {showTerms && (
+        <div onClick={() => setShowTerms(false)} style={{ position: 'fixed', inset: 0, zIndex: 9999, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+          <div onClick={e => e.stopPropagation()} style={{ backgroundColor: 'white', borderRadius: '16px', width: '100%', maxWidth: '420px', maxHeight: '80vh', overflowY: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
+            <div style={{ backgroundColor: '#2D6A4F', padding: '20px 24px', borderRadius: '16px 16px 0 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <h3 style={{ color: 'white', fontFamily: 'Playfair Display, serif', fontSize: '1.2rem', margin: 0 }}>Terms & Conditions</h3>
+                <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '12px', margin: '4px 0 0' }}>Please read carefully before booking</p>
+              </div>
+              <button onClick={() => setShowTerms(false)} style={{ background: 'none', border: 'none', color: 'white', fontSize: '22px', cursor: 'pointer' }}>×</button>
+            </div>
+            <div style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {[
+                { icon: '💰', title: 'Pre-booking Confirmation', desc: 'A 30% advance payment is required to confirm your booking.' },
+                { icon: '🔄', title: 'Refund Policy', desc: 'The pre-booking amount is non-refundable under any circumstances.' },
+                { icon: '📅', title: 'Check-in / Check-out', desc: 'Standard check-in is 12 PM and check-out is 11 AM. Early/late subject to availability.' },
+                { icon: '👥', title: 'Guest Policy', desc: 'Room allocation is based on the number of guests at time of booking.' },
+                { icon: '🏨', title: 'Accommodation', desc: 'Room type is subject to availability. Upgrades may be available on request.' },
+              ].map((term, i) => (
+                <div key={i} style={{ display: 'flex', gap: '12px', padding: '12px', backgroundColor: '#f9fafb', borderRadius: '10px', borderLeft: '3px solid #2D6A4F' }}>
+                  <span style={{ fontSize: '18px', flexShrink: 0 }}>{term.icon}</span>
+                  <div>
+                    <p style={{ margin: '0 0 4px', fontWeight: '600', fontSize: '13px', color: '#1C1C1E' }}>{term.title}</p>
+                    <p style={{ margin: 0, fontSize: '12px', color: '#6B7280', lineHeight: '1.5' }}>{term.desc}</p>
+                  </div>
                 </div>
               ))}
             </div>
-          </div>
-
-          <div>
-            <h2 className="font-playfair font-bold text-[#1C1C1E] text-xl mb-4">Amenities</h2>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-              {resort.amenities.map((a) => (
-                <span key={a} className="flex items-center gap-2 text-sm bg-[#EFF7F2] text-[#2D6A4F] px-3 py-2 rounded-lg">
-                  <CheckCircle size={14} /> {a}
-                </span>
-              ))}
+            <div style={{ padding: '0 24px 20px' }}>
+              <button onClick={() => setShowTerms(false)} style={{ width: '100%', padding: '12px', backgroundColor: '#2D6A4F', color: 'white', border: 'none', borderRadius: '10px', fontWeight: '600', fontSize: '14px', cursor: 'pointer' }}>
+                I Understand
+              </button>
             </div>
           </div>
         </div>
-
-        {/* Booking Sidebar */}
-        <div>
-          <div className="sticky top-24 bg-[#FFFBF4] rounded-2xl border border-[#F4E9D8] shadow-xl p-6">
-            <p className="text-sm text-[#6B7280] mb-1">Price per night</p>
-            <p className="font-playfair font-bold text-3xl text-[#1C1C1E] mb-1">₹{resort.pricePerNight.toLocaleString('en-IN')}</p>
-            <p className="text-xs text-[#6B7280] mb-6">Taxes included · Free cancellation</p>
-            <a
-              href={resort.whatsapp}
-              target="_blank"
-              rel="noopener noreferrer"
-              id={`book-resort-detail-${resort.id}`}
-              className="w-full flex items-center justify-center gap-3 py-4 rounded-xl text-white font-bold text-base shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all"
-              style={{ backgroundColor: '#25D366' }}
-            >
-              <MessageCircle size={20} /> Book via WhatsApp
-            </a>
-            <p className="text-center text-xs text-[#6B7280] mt-3">No booking fees · Instant confirmation</p>
-          </div>
-        </div>
-      </div>
+      )}
     </motion.div>
   );
 }

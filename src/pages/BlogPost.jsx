@@ -26,6 +26,63 @@ export default function BlogPost() {
     fetch();
   }, [slug]);
 
+  useEffect(() => {
+    if (!post) return;
+
+    // Page title
+    document.title = `${post.seo_title || post.title} | Araku Valley`;
+
+    // Meta description
+    let metaDesc = document.querySelector('meta[name="description"]');
+    if (!metaDesc) {
+      metaDesc = document.createElement('meta');
+      metaDesc.name = 'description';
+      document.head.appendChild(metaDesc);
+    }
+    metaDesc.content = post.seo_description || post.excerpt || post.title;
+
+    // Meta keywords
+    if (post.meta_keywords) {
+      let metaKw = document.querySelector('meta[name="keywords"]');
+      if (!metaKw) {
+        metaKw = document.createElement('meta');
+        metaKw.name = 'keywords';
+        document.head.appendChild(metaKw);
+      }
+      metaKw.content = post.meta_keywords;
+    }
+
+    // OG Title
+    let ogTitle = document.querySelector('meta[property="og:title"]');
+    if (!ogTitle) { ogTitle = document.createElement('meta'); ogTitle.setAttribute('property', 'og:title'); document.head.appendChild(ogTitle); }
+    ogTitle.content = `${post.seo_title || post.title} | Araku Valley`;
+
+    // OG Description
+    let ogDesc = document.querySelector('meta[property="og:description"]');
+    if (!ogDesc) { ogDesc = document.createElement('meta'); ogDesc.setAttribute('property', 'og:description'); document.head.appendChild(ogDesc); }
+    ogDesc.content = post.seo_description || post.excerpt || '';
+
+    // OG Image
+    let ogImg = document.querySelector('meta[property="og:image"]');
+    if (!ogImg) { ogImg = document.createElement('meta'); ogImg.setAttribute('property', 'og:image'); document.head.appendChild(ogImg); }
+    ogImg.content = post.og_image || post.cover_image || '';
+
+    // OG URL
+    let ogUrl = document.querySelector('meta[property="og:url"]');
+    if (!ogUrl) { ogUrl = document.createElement('meta'); ogUrl.setAttribute('property', 'og:url'); document.head.appendChild(ogUrl); }
+    ogUrl.content = window.location.href;
+
+    // Canonical link
+    let canonical = document.querySelector('link[rel="canonical"]');
+    if (!canonical) { canonical = document.createElement('link'); canonical.rel = 'canonical'; document.head.appendChild(canonical); }
+    canonical.href = window.location.href;
+
+    // Cleanup on unmount
+    return () => {
+      document.title = 'Araku Valley | Tour Packages from Vizag';
+    };
+  }, [post]);
+
   if (loading) return <div style={{ padding: '120px 24px', textAlign: 'center', color: '#9E8B7B' }}>Loading...</div>;
   if (!post) return <div style={{ padding: '120px 24px', textAlign: 'center' }}>Post not found. <Link to="/blog">← Back to Blog</Link></div>;
 
@@ -97,7 +154,7 @@ export default function BlogPost() {
       }}>
         {[
           { icon: User, text: post.author },
-          { icon: Calendar, text: new Date(post.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }) },
+          { icon: Calendar, text: new Date(post.post_date || post.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }) },
           { icon: Clock, text: post.read_time },
         ].map(({ icon: Icon, text }) => (
           <span key={text} style={{

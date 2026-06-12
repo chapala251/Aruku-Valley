@@ -14,15 +14,15 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
+  if (location.pathname.startsWith('/admin')) return null;
+
   return (
     <>
-      <nav style={{
+      <nav className="main-navbar" style={{
         position: 'fixed', top: 0, left: 0, right: 0, zIndex: 1000,
         height: '64px',
-        display: 'grid',
-        gridTemplateColumns: '1fr auto 1fr',
         alignItems: 'center',
-        padding: '0 28px',
+        padding: '0 24px',
         backgroundColor: scrolled ? 'rgba(250,247,242,0.97)' : 'rgba(250,247,242,0.93)',
         backdropFilter: 'blur(16px)',
         WebkitBackdropFilter: 'blur(16px)',
@@ -31,12 +31,18 @@ export default function Navbar() {
         transition: 'box-shadow 0.3s ease',
       }}>
 
-        {/* LEFT — empty spacer */}
-        <div />
+        {/* LEFT — empty on desktop (for balance), Sign In on mobile hidden */}
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          <div className="mobile-signin-left" style={{ display: 'none' }}>
+          </div>
+        </div>
 
-        {/* CENTER — Logo + Title ONE LINE */}
+        {/* CENTER — Logo always centered on desktop */}
         <Link to="/" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '10px', textDecoration: 'none' }}>
+          style={{
+            display: 'flex', alignItems: 'center', gap: '10px',
+            textDecoration: 'none', justifyContent: 'center',
+          }}>
           <div className="navbar-brand-icon" style={{
             width: '36px', height: '36px', borderRadius: '9px',
             backgroundColor: '#C4622D', display: 'flex', alignItems: 'center',
@@ -50,7 +56,6 @@ export default function Navbar() {
             lineHeight: 1, whiteSpace: 'nowrap',
           }}>Araku Valley</span>
         </Link>
-
         {/* RIGHT — Sign In button or Greeting */}
         <div className="header-auth" style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
           {user ? (
@@ -67,7 +72,7 @@ export default function Navbar() {
               >
                 Hi, {user.user_metadata?.full_name?.split(' ')[0] || user.name?.split(' ')[0] || 'there'}
               </span>
-              
+
               {/* Avatar circle — always visible */}
               <Link
                 to="/dashboard"

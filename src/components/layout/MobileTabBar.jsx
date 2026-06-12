@@ -15,7 +15,7 @@ export default function MobileTabBar() {
     }} className="araku-mobile-tabbar">
 
       {/* ABOUT */}
-      <NavLink to="/contact" end
+      <NavLink to="/about" end
         onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
         style={({ isActive }) => ({
           flex: 1, display: 'flex', flexDirection: 'column',

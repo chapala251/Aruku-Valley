@@ -1,7 +1,6 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { packages } from '../../data/packages';
+import { supabase } from '../../lib/supabase';
 import PackageCard, { cardVariants } from '../packages/PackageCard';
 import SectionHeader from '../shared/SectionHeader';
 
@@ -9,8 +8,23 @@ const containerVariants = {
   animate: { transition: { staggerChildren: 0.1 } },
 };
 
-export default function FeaturedPackages() {
-  const featured = packages.slice(0, 3);
+export default function FeaturedPackages({ onBookNow }) {
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [showAllPackages, setShowAllPackages] = useState(false);
+  const [packages, setPackages] = useState([]);
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
+
+  useEffect(() => {
+    supabase.from('packages').select('*')
+      .eq('published', true)
+      .order('created_at', { ascending: false })
+      .then(({ data }) => setPackages(data || []));
+  }, []);
 
   return (
     <section className="py-20 px-5 md:px-8 bg-[#FFFBF4]" id="featured-packages">
@@ -34,22 +48,40 @@ export default function FeaturedPackages() {
           initial="initial"
           whileInView="animate"
           viewport={{ once: true }}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 lg:gap-10 mb-10"
+          style={{
+            display: 'grid',
+            gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)',
+            gap: isMobile ? '12px' : '24px',
+            padding: isMobile ? '0 16px' : '0',
+          }}
+          className="mb-10"
         >
-          {featured.map((pkg) => (
-            <PackageCard key={pkg.id} pkg={pkg} />
-          ))}
+          {(isMobile && !showAllPackages ? packages.slice(0, 2) : packages)
+            .map((pkg) => (
+              <PackageCard
+                key={pkg.id}
+                pkg={pkg}
+                onBookNow={() => onBookNow && onBookNow(pkg)}
+              />
+            ))}
         </motion.div>
 
-        <div className="text-center">
-          <Link
-            to="/packages"
-            id="view-all-packages"
-            className="inline-flex items-center gap-2 text-[#2D6A4F] font-semibold text-base hover:underline transition-all"
-          >
-            View All Packages →
-          </Link>
-        </div>
+        {isMobile && !showAllPackages && packages.length > 2 && (
+          <div style={{ textAlign: 'center', marginTop: '20px', padding: '0 16px' }}>
+            <button
+              onClick={() => setShowAllPackages(true)}
+              style={{
+                padding: '10px 32px', borderRadius: '100px',
+                backgroundColor: 'transparent', color: '#C4622D',
+                border: '1.5px solid #C4622D', cursor: 'pointer',
+                fontSize: '14px', fontWeight: '600',
+                fontFamily: "'Plus Jakarta Sans', sans-serif",
+              }}
+            >
+              View All Packages →
+            </button>
+          </div>
+        )}
       </div>
     </section>
   );

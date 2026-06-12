@@ -1,50 +1,127 @@
 import React, { useState } from 'react';
-import { ChevronDown } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
 
 export default function ItineraryAccordion({ itinerary }) {
-  const [openIndex, setOpenIndex] = useState(0);
+  // Handle itinerary in multiple formats
+  let parsedItinerary = itinerary;
+  
+  // If it's a string, try to parse it
+  if (typeof itinerary === 'string' && itinerary.length > 0) {
+    try {
+      // Try to parse as JSON array
+      const parsed = JSON.parse(itinerary);
+      if (Array.isArray(parsed)) {
+        parsedItinerary = parsed;
+      } else if (typeof parsed === 'object' && parsed !== null) {
+        parsedItinerary = [parsed];
+      }
+    } catch (e) {
+      console.warn('Failed to parse itinerary JSON:', e);
+      parsedItinerary = [{ title: 'Itinerary', description: itinerary }];
+    }
+  }
+
+  // Ensure it's an array
+  if (!Array.isArray(parsedItinerary)) {
+    if (typeof parsedItinerary === 'object' && parsedItinerary !== null) {
+      parsedItinerary = [parsedItinerary];
+    } else {
+      parsedItinerary = [];
+    }
+  }
+
+  console.log('Parsed itinerary:', parsedItinerary);
 
   return (
-    <div className="space-y-3">
-      {itinerary.map((item, i) => (
-        <div key={i} className="border border-[#F4E9D8] rounded-xl overflow-hidden">
-          <button
-            onClick={() => setOpenIndex(openIndex === i ? -1 : i)}
-            id={`itinerary-item-${i}`}
-            className="w-full flex items-center justify-between px-5 py-4 text-left bg-[#FFFBF4] hover:bg-[#EFF7F2] transition-colors"
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-7 h-7 rounded-full bg-[#2D6A4F] text-white text-xs font-bold flex items-center justify-center shrink-0">
-                {i + 1}
-              </div>
-              <div>
-                <p className="font-semibold text-[#1C1C1E] text-sm">{item.place}</p>
-                <p className="text-xs text-[#6B7280]">{item.time}</p>
-              </div>
-            </div>
-            <motion.div animate={{ rotate: openIndex === i ? 180 : 0 }} transition={{ duration: 0.2 }}>
-              <ChevronDown size={18} className="text-[#6B7280]" />
-            </motion.div>
-          </button>
-          <AnimatePresence initial={false}>
-            {openIndex === i && (
-              <motion.div
-                key="content"
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.25, ease: 'easeInOut' }}
-                className="overflow-hidden"
-              >
-                <div className="px-5 py-4 bg-[#EFF7F2] text-sm text-[#6B7280] border-t border-[#F4E9D8]">
-                  {item.description}
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
+    <div>
+      {(parsedItinerary || []).map((stop, index) => (
+        <ItineraryItem key={index} index={index} stop={stop} />
       ))}
+    </div>
+  );
+}
+
+function ItineraryItem({ index, stop }) {
+  const [open, setOpen] = useState(index === 0);
+
+  // Handle different data formats
+  let stopData = stop;
+  
+  // If stop is a string, try to parse it as JSON
+  if (typeof stop === 'string') {
+    try {
+      stopData = JSON.parse(stop);
+    } catch (e) {
+      // It's just a plain string
+      stopData = { title: stop, description: '' };
+    }
+  }
+
+  // Extract title and description
+  let stopTitle = 'Day ' + (index + 1);
+  let stopDesc = '';
+
+  if (typeof stopData === 'object' && stopData !== null) {
+    stopTitle = stopData.title || stopData.name || `Day ${stopData.day || index + 1}`;
+    stopDesc = stopData.description || '';
+    
+    // If no description, create a default one
+    if (!stopDesc) {
+      stopDesc = `Explore ${stopTitle} — one of the highlights of the Araku Valley tour experience.`;
+    }
+  }
+
+  return (
+    <div style={{
+      border: '1px solid #E8DDD4',
+      borderRadius: '12px',
+      marginBottom: '8px',
+      overflow: 'hidden',
+      backgroundColor: '#fff',
+    }}>
+      {/* Header — clickable */}
+      <button
+        onClick={() => setOpen(!open)}
+        style={{
+          width: '100%', display: 'flex', alignItems: 'center',
+          justifyContent: 'space-between', padding: '14px 18px',
+          background: 'none', border: 'none', cursor: 'pointer',
+          textAlign: 'left',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <span style={{
+            width: '28px', height: '28px', borderRadius: '50%',
+            backgroundColor: '#2D6A4F', color: '#fff',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: '12px', fontWeight: '700', flexShrink: 0,
+            fontFamily: "'Plus Jakarta Sans', sans-serif",
+          }}>
+            {index + 1}
+          </span>
+          <span style={{
+            fontFamily: "'Plus Jakarta Sans', sans-serif",
+            fontSize: '14px', fontWeight: '500', color: '#1A120B',
+          }}>
+            {stopTitle}
+          </span>
+        </div>
+        <span style={{ color: '#9E8B7B', fontSize: '18px' }}>
+          {open ? '−' : '+'}
+        </span>
+      </button>
+
+      {/* Expanded content */}
+      {open && (
+        <div style={{ padding: '0 18px 14px 58px' }}>
+          <p style={{
+            fontSize: '13px', color: '#6B5744', lineHeight: 1.6,
+            fontFamily: "'Plus Jakarta Sans', sans-serif", margin: 0,
+            whiteSpace: 'pre-wrap',
+          }}>
+            {stopDesc}
+          </p>
+        </div>
+      )}
     </div>
   );
 }

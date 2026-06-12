@@ -1,10 +1,11 @@
-import React from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { useState } from 'react';
 import { AnimatePresence } from 'framer-motion';
 
 import Navbar from '../components/layout/Navbar';
 import MobileTabBar from '../components/layout/MobileTabBar';
 import Footer from '../components/layout/Footer';
+import TermsConditionsModal from '../components/shared/TermsConditionsModal';
 import WhatsAppButton from '../components/shared/WhatsAppButton';
 import PageTabBar from '../components/layout/PageTabBar';
 
@@ -19,39 +20,30 @@ import Lambasingi from '../pages/Lambasingi';
 import Blog from '../pages/Blog';
 import BlogPost from '../pages/BlogPost';
 import Contact from '../pages/Contact';
+import About from '../pages/About';
 import Login from '../pages/auth/Login';
 import Signup from '../pages/auth/Signup';
 import Dashboard from '../pages/Dashboard';
 import BlogEditor from '../pages/admin/BlogEditor';
+import PackageEditor from '../pages/admin/PackageEditor';
+import ResortEditor from '../pages/admin/ResortEditor';
+
+import AdminDashboard from '../pages/admin/AdminDashboard';
 
 function ProtectedRoute({ children }) {
-  const location = useLocation();
-  const userStr = localStorage.getItem('user');
-  const user = userStr ? JSON.parse(userStr) : null;
-  const isAuthenticated = user && user.isLoggedIn;
-
-  if (!isAuthenticated) {
-    return <Navigate to="/auth/login" state={{ from: location.pathname }} replace />;
-  }
+  const stored = localStorage.getItem('user');
+  const user = stored ? JSON.parse(stored) : null;
+  if (!user) return <Navigate to="/auth/login" replace />;
+  // If admin tries to access user dashboard, redirect to admin dashboard
+  if (user.email === 'arakuecostays@gmail.com') return <Navigate to="/admin/dashboard" replace />;
   return children;
 }
 
-function AdminBlogRoute({ children }) {
+function AdminRoute({ children }) {
   const stored = localStorage.getItem('user');
-  const user   = stored ? JSON.parse(stored) : null;
-  const isAdmin = user?.email === 'arakuecostays@gmail.com';
-
-  if (!user) {
-    // Not logged in — go to sign in
-    return <Navigate to="/auth/login" replace />;
-  }
-
-  if (!isAdmin) {
-    // Logged in but not admin — go to dashboard
-    return <Navigate to="/dashboard" replace />;
-  }
-
-  // Is admin — show the editor
+  const user = stored ? JSON.parse(stored) : null;
+  if (!user) return <Navigate to="/auth/login" replace />;
+  if (user.email !== 'arakuecostays@gmail.com') return <Navigate to="/dashboard" replace />;
   return children;
 }
 
@@ -60,8 +52,15 @@ const noFooterRoutes = ['/auth/login', '/auth/signup'];
 
 export default function AppRouter() {
   const location = useLocation();
-  const showFooter = !noFooterRoutes.includes(location.pathname);
-  const showPageTabBar = !noFooterRoutes.includes(location.pathname);
+  const [termsOpen, setTermsOpen] = useState(false);
+  
+  // Expose to window for nested components to access
+  window.setTermsOpen = setTermsOpen;
+  
+  const isAdminRoute = location.pathname.startsWith('/admin');
+  const showFooter = !noFooterRoutes.includes(location.pathname) && !isAdminRoute;
+  const showPageTabBar = !noFooterRoutes.includes(location.pathname) && !isAdminRoute;
+  const showMobileTabBar = !isAdminRoute;
 
   return (
     <>
@@ -79,7 +78,7 @@ export default function AppRouter() {
             <Route path="/vanjangi" element={<Vanjangi />} />
             <Route path="/lambasingi" element={<Lambasingi />} />
             <Route path="/blog" element={<Blog />} />
-            <Route path="/blog/:slug" element={<BlogPost />} />
+            <Route path="/about" element={<About />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/auth/login" element={<Login />} />
             <Route path="/auth/signup" element={<Signup />} />
@@ -93,16 +92,24 @@ export default function AppRouter() {
             />
 
             {/* Admin routes — check admin inside guard */}
-            <Route path="/admin/blog/new" element={<AdminBlogRoute><BlogEditor /></AdminBlogRoute>} />
-            <Route path="/admin/blog/edit/:id" element={<AdminBlogRoute><BlogEditor /></AdminBlogRoute>} />
+            <Route path="/admin/dashboard" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+            <Route path="/admin/blog/new" element={<AdminRoute><BlogEditor /></AdminRoute>} />
+            <Route path="/admin/blog/edit/:id" element={<AdminRoute><BlogEditor /></AdminRoute>} />
+            <Route path="/admin/package/new" element={<AdminRoute><PackageEditor /></AdminRoute>} />
+            <Route path="/admin/package/edit/:id" element={<AdminRoute><PackageEditor /></AdminRoute>} />
+            <Route path="/admin/resort/new" element={<AdminRoute><ResortEditor /></AdminRoute>} />
+            <Route path="/admin/resort/edit/:id" element={<AdminRoute><ResortEditor /></AdminRoute>} />
 
+
+            <Route path="/:slug" element={<BlogPost />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </AnimatePresence>
       </main>
-      {showFooter && <Footer />}
-      <MobileTabBar />
+      {showFooter && <Footer setTermsOpen={setTermsOpen} />}
+      {showMobileTabBar && <MobileTabBar />}
       <WhatsAppButton />
+      <TermsConditionsModal isOpen={termsOpen} onClose={() => setTermsOpen(false)} />
     </>
   );
 }

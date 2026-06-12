@@ -1,20 +1,19 @@
 import React, { useEffect } from 'react';
-import { BrowserRouter } from 'react-router-dom';
+import { BrowserRouter as Router, useLocation } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import AppRouter from './routes/AppRouter';
 import useAuthStore from './store/authStore';
 import ScrollToTop from './components/ScrollToTop';
+import SitePopup from './components/shared/SitePopup';
+import WhatsAppButton from './components/shared/WhatsAppButton';
 import './index.css';
 
-export default function App() {
-  const initAuth = useAuthStore((s) => s.initAuth);
-
-  useEffect(() => {
-    initAuth();
-  }, [initAuth]);
+function AppContent() {
+  const location = useLocation();
+  const isAdmin = location.pathname.startsWith('/admin');
 
   return (
-    <BrowserRouter>
+    <>
       <ScrollToTop />
       <Toaster
         position="top-right"
@@ -35,6 +34,22 @@ export default function App() {
         }}
       />
       <AppRouter />
-    </BrowserRouter>
+      {!isAdmin && <WhatsAppButton />}
+      {!isAdmin && <SitePopup />}
+    </>
+  );
+}
+
+export default function App() {
+  const initAuth = useAuthStore((s) => s.initAuth);
+
+  useEffect(() => {
+    initAuth();
+  }, [initAuth]);
+
+  return (
+    <Router>
+      <AppContent />
+    </Router>
   );
 }

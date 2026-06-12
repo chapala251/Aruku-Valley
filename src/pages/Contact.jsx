@@ -45,12 +45,12 @@ export default function Contact() {
 
     const { error } = await supabase
       .from('contact_messages')
-      .insert([{
+      .insert({
         full_name: data.name,
-        email:     data.email,
-        phone:     data.phone || null,
-        message:   data.message,
-      }]);
+        email: data.email,
+        phone: data.phone,
+        message: data.message,
+      });
 
     if (error) {
       setErrorMsg('Something went wrong. Please try WhatsApp instead.');

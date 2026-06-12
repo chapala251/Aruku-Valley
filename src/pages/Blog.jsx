@@ -1,32 +1,49 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { Clock, Tag, ArrowRight } from 'lucide-react';
+import { Clock, Tag, ArrowRight, X } from 'lucide-react';
 import ArakuNavTabs from '../components/ArakuNavTabs';
+
+const CATEGORIES = ['All', 'Destination Guide', 'Travel Tips', 'Culture', 'Food', 'Adventure', 'Outdoors', 'Water', 'Nature', 'Photography', 'Local Experiences'];
 
 export default function Blog() {
   const [posts, setPosts]   = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeCategory, setActiveCategory] = useState('All');
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const categoryFilter = searchParams.get('category');
+  const [activeCategory, setActiveCategory] = useState(categoryFilter || 'All');
 
-  const categories = ['All', 'Destination Guide', 'Travel Tips', 'Culture & Food'];
+  // Sync activeCategory with URL param
+  useEffect(() => {
+    setActiveCategory(categoryFilter || 'All');
+  }, [categoryFilter]);
 
   useEffect(() => {
     const fetchPosts = async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from('blogs')
         .select('*')
-        .eq('published', true)
-        .order('created_at', { ascending: false });
+        .eq('published', true);
+      if (activeCategory && activeCategory !== 'All') {
+        query = query.eq('category', activeCategory);
+      }
+      const { data, error } = await query.order('created_at', { ascending: false });
       if (!error) setPosts(data || []);
       setLoading(false);
     };
     fetchPosts();
-  }, []);
+  }, [activeCategory]);
 
-  const filtered = activeCategory === 'All'
-    ? posts
-    : posts.filter(p => p.category === activeCategory);
+  const handleCategoryClick = (cat) => {
+    if (cat === 'All') {
+      navigate('/blog');
+    } else {
+      navigate(`/blog?category=${encodeURIComponent(cat)}`);
+    }
+  };
+
+  const filtered = posts; // already filtered via Supabase query
 
   // Check if admin is logged in
   const stored = localStorage.getItem('user');
@@ -73,9 +90,10 @@ export default function Blog() {
         overflowX: 'auto', scrollbarWidth: 'none',
         borderBottom: '1px solid #E8DDD4',
         backgroundColor: '#fff',
+        alignItems: 'center',
       }}>
-        {categories.map(cat => (
-          <button key={cat} onClick={() => setActiveCategory(cat)} style={{
+        {CATEGORIES.map(cat => (
+          <button key={cat} onClick={() => handleCategoryClick(cat)} style={{
             padding: '7px 18px', borderRadius: '100px', border: 'none',
             cursor: 'pointer', whiteSpace: 'nowrap',
             backgroundColor: activeCategory === cat ? '#2D6A4F' : '#F4EDE3',
@@ -87,6 +105,17 @@ export default function Blog() {
             {cat}
           </button>
         ))}
+        {activeCategory !== 'All' && (
+          <button onClick={() => handleCategoryClick('All')} style={{
+            padding: '5px 12px', borderRadius: '100px',
+            border: '1px solid #dc2626', backgroundColor: '#fee2e2',
+            color: '#dc2626', fontSize: '12px', fontWeight: '600',
+            cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px',
+            whiteSpace: 'nowrap', fontFamily: "'Plus Jakarta Sans', sans-serif",
+          }}>
+            <X size={12} /> Clear filter
+          </button>
+        )}
       </div>
 
       {/* Blog Grid */}
@@ -150,7 +179,7 @@ export default function Blog() {
                       <Clock size={12} /> {post.read_time}
                     </span>
                     <span style={{ fontSize: '12px', color: '#9E8B7B', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-                      {new Date(post.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                      {new Date(post.post_date || post.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
                     </span>
                   </div>
 
@@ -171,7 +200,7 @@ export default function Blog() {
                     {post.excerpt}
                   </p>
 
-                  <Link to={`/blog/${post.slug}`} style={{
+                  <Link to={`/${post.slug}`} style={{
                     display: 'inline-flex', alignItems: 'center', gap: '6px',
                     color: '#C4622D', fontWeight: '600', fontSize: '13px',
                     textDecoration: 'none', fontFamily: "'Plus Jakarta Sans', sans-serif",
