@@ -7,6 +7,7 @@ import ExploreCategorySection from '../components/home/ExploreCategorySection';
 
 import ResortStrip from '../components/home/ResortStrip';
 import TopThingsSection from '../components/home/TopThingsSection';
+import MustVisitPlacesSection from '../components/home/MustVisitPlacesSection';
 import NoticesSection from '../components/home/NoticesSection';
 import DestinationCards from '../components/home/DestinationCards';
 import WhyChooseUs from '../components/home/WhyChooseUs';
@@ -62,6 +63,7 @@ export default function Home() {
         }}
       />
       <TopThingsSection />
+      <MustVisitPlacesSection />
       <ExploreCategorySection />
       <DestinationCards />
       <NoticesSection />
